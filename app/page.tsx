@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { MobileMenu } from "./MobileMenu";
 
+export const revalidate = 43200;
+
 const Arrow = ({ dark = false }: { dark?: boolean }) => (
   <svg aria-hidden="true" viewBox="0 0 34 16" className="arrow-icon">
     <path
@@ -74,6 +76,8 @@ const FacebookIcon = () => (
 
 const churchAddress = "Sector 22, Dwarka, Delhi, 110077";
 const youtubeChannelUrl = "https://www.youtube.com/@cbfdwarka";
+const youtubeHandle = "@cbfdwarka";
+const maxYouTubeVideosToScan = 500;
 
 const featureCards = [
   {
@@ -114,13 +118,58 @@ const events = [
   },
 ];
 
-const sermons = [
+type Sermon = {
+  image: string;
+  number: string;
+  kind: string;
+  title: string;
+  body: string;
+  href: string;
+};
+
+type YouTubeChannelListResponse = {
+  items?: Array<{
+    contentDetails?: {
+      relatedPlaylists?: {
+        uploads?: string;
+      };
+    };
+  }>;
+};
+
+type YouTubePlaylistItemsResponse = {
+  nextPageToken?: string;
+  items?: Array<{
+    contentDetails?: {
+      videoId?: string;
+    };
+  }>;
+};
+
+type YouTubeThumbnails = Record<string, { url?: string; width?: number; height?: number }>;
+
+type YouTubeVideosResponse = {
+  items?: Array<{
+    id?: string;
+    snippet?: {
+      title?: string;
+      description?: string;
+      thumbnails?: YouTubeThumbnails;
+    };
+    statistics?: {
+      viewCount?: string;
+    };
+  }>;
+};
+
+const fallbackSermons: Sermon[] = [
   {
     image: "/assets/sermon-1.png",
     number: "01",
     kind: "Sunday Sermon",
     title: "Walking in Faith",
     body: "Discovering trust in the unknown paths.",
+    href: youtubeChannelUrl,
   },
   {
     image: "/assets/sermon-2.png",
@@ -128,6 +177,7 @@ const sermons = [
     kind: "Bible Study",
     title: "The Prodigal Son",
     body: "A profound study on returning home.",
+    href: youtubeChannelUrl,
   },
   {
     image: "/assets/sermon-3.png",
@@ -135,10 +185,138 @@ const sermons = [
     kind: "Midweek Message",
     title: "Grace Renewed",
     body: "Fresh perspective for the weary soul.",
+    href: youtubeChannelUrl,
   },
 ];
 
-export default function Home() {
+const getBestThumbnail = (thumbnails?: YouTubeThumbnails) => {
+  if (!thumbnails) {
+    return "";
+  }
+
+  return thumbnails.maxres?.url || thumbnails.standard?.url || thumbnails.high?.url || thumbnails.medium?.url || thumbnails.default?.url || "";
+};
+
+const getVideoDescription = (description = "") => {
+  const cleanDescription = description.replace(/\s+/g, " ").trim();
+
+  if (!cleanDescription) {
+    return "Watch this message from CBF Dwarka.";
+  }
+
+  const firstSentence = cleanDescription.match(/^.{1,120}?(?:[.!?](?:\s|$)|$)/)?.[0]?.trim() || cleanDescription.slice(0, 120).trim();
+  return firstSentence.length > 120 ? `${firstSentence.slice(0, 117)}...` : firstSentence;
+};
+
+const youtubeApiFetch = async <T,>(path: string, params: Record<string, string>, apiKey: string) => {
+  const url = new URL(`https://www.googleapis.com/youtube/v3/${path}`);
+
+  Object.entries({ ...params, key: apiKey }).forEach(([key, value]) => {
+    url.searchParams.set(key, value);
+  });
+
+  const response = await fetch(url, { next: { revalidate } });
+
+  if (!response.ok) {
+    throw new Error(`YouTube API request failed: ${path}`);
+  }
+
+  return response.json() as Promise<T>;
+};
+
+const getFeaturedSermons = async (): Promise<Sermon[]> => {
+  const apiKey = process.env.YOUTUBE_API_KEY;
+
+  if (!apiKey) {
+    return fallbackSermons;
+  }
+
+  try {
+    const channel = await youtubeApiFetch<YouTubeChannelListResponse>(
+      "channels",
+      {
+        forHandle: youtubeHandle,
+        part: "contentDetails",
+      },
+      apiKey,
+    );
+
+    const uploadsPlaylistId = channel.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+
+    if (!uploadsPlaylistId) {
+      return fallbackSermons;
+    }
+
+    const videoIds: string[] = [];
+    let pageToken = "";
+
+    while (videoIds.length < maxYouTubeVideosToScan) {
+      const playlistItems = await youtubeApiFetch<YouTubePlaylistItemsResponse>(
+        "playlistItems",
+        {
+          playlistId: uploadsPlaylistId,
+          part: "contentDetails",
+          maxResults: "50",
+          ...(pageToken ? { pageToken } : {}),
+        },
+        apiKey,
+      );
+
+      playlistItems.items?.forEach((item) => {
+        const videoId = item.contentDetails?.videoId;
+
+        if (videoId && videoIds.length < maxYouTubeVideosToScan) {
+          videoIds.push(videoId);
+        }
+      });
+
+      if (!playlistItems.nextPageToken) {
+        break;
+      }
+
+      pageToken = playlistItems.nextPageToken;
+    }
+
+    const videos: NonNullable<YouTubeVideosResponse["items"]> = [];
+
+    for (let index = 0; index < videoIds.length; index += 50) {
+      const videoResponse = await youtubeApiFetch<YouTubeVideosResponse>(
+        "videos",
+        {
+          id: videoIds.slice(index, index + 50).join(","),
+          part: "snippet,statistics",
+        },
+        apiKey,
+      );
+
+      videos.push(...(videoResponse.items || []));
+    }
+
+    const featuredVideos = videos
+      .filter((video) => video.id && video.snippet?.title && getBestThumbnail(video.snippet.thumbnails))
+      .sort((left, right) => Number(right.statistics?.viewCount || 0) - Number(left.statistics?.viewCount || 0))
+      .slice(0, 3);
+
+    if (featuredVideos.length < 3) {
+      return fallbackSermons;
+    }
+
+    return featuredVideos.map((video, index) => ({
+      image: getBestThumbnail(video.snippet?.thumbnails),
+      number: String(index + 1).padStart(2, "0"),
+      kind: "Most Viewed",
+      title: video.snippet?.title || "CBF Dwarka Sermon",
+      body: getVideoDescription(video.snippet?.description),
+      href: `https://www.youtube.com/watch?v=${video.id}`,
+    }));
+  } catch {
+    return fallbackSermons;
+  }
+};
+
+export default async function Home() {
+  const sermons = await getFeaturedSermons();
+
   return (
     <main>
       <section className="hero" aria-label="CBF Dwarka introduction">
@@ -160,7 +338,7 @@ export default function Home() {
         </header>
         <div className="hero-copy">
           <p>
-            <span>WELCOME TO</span>
+            <span>Welcome to</span>
             <span>CHRISTIAN BELIEVERS FELLOWSHIP</span>
           </p>
           <h1>A Gospel Centric Church in Dwarka, New Delhi</h1>
@@ -245,7 +423,7 @@ export default function Home() {
           {sermons.map((sermon) => (
             <a
               className="sermon-card"
-              href={youtubeChannelUrl}
+              href={sermon.href}
               key={sermon.title}
               target="_blank"
               rel="noreferrer"

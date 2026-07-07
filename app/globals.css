@@ -149,6 +149,9 @@ main {
   font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.06em;
+}
+
+.hero-copy > p span:last-child {
   text-transform: uppercase;
 }
 
