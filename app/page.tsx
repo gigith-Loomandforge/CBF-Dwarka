@@ -178,7 +178,7 @@ export default function Home() {
                 {card.title === "Upcoming Events" ? (
                   <div className="mini-event">
                     <div className="mini-date">
-                      <strong>Sunday, July 6</strong>
+                      <strong>Every Sunday</strong>
                       <span>10:30 AM</span>
                     </div>
                     <h3>Sunday Morning Service</h3>
