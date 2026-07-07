@@ -141,9 +141,15 @@ main {
 }
 
 .hero-copy > p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35em;
   margin: 0 0 16px;
   font-family: Montserrat, Arial, sans-serif;
   font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 h1,
@@ -160,33 +166,6 @@ p {
   font-size: 68px;
   line-height: 84px;
   font-weight: 400;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 23px;
-  margin-top: 66px;
-}
-
-.button {
-  min-height: 67px;
-  display: inline-flex;
-  align-items: center;
-  gap: 18px;
-  border-radius: 80px;
-  padding: 22px 18px;
-  font-size: 16px;
-}
-
-.button.primary {
-  background: var(--gold);
-  color: white;
-}
-
-.button.secondary {
-  color: #262624;
-  background: rgba(225, 164, 59, 0.2);
-  border: 1px solid var(--gold);
 }
 
 .arrow-icon {
@@ -314,6 +293,10 @@ p {
   padding-top: 170px;
 }
 
+.visit-copy {
+  min-width: 0;
+}
+
 .date-badge {
   display: inline-flex;
   margin-bottom: 20px;
@@ -357,8 +340,8 @@ p {
 }
 
 .visit-body {
-  width: 640px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 640px;
   margin-bottom: 20px;
   color: var(--muted);
   font-family: Geist, Inter, sans-serif;
@@ -403,7 +386,8 @@ p {
 
 .pin {
   width: 70px;
-  height: 90px;
+  height: auto;
+  aspect-ratio: 7 / 9;
   display: block;
   flex: 0 0 auto;
   margin-bottom: 11px;
@@ -549,6 +533,16 @@ p {
   gap: 19px;
 }
 
+.sermon-card {
+  display: block;
+  border-radius: 3px;
+}
+
+.sermon-card:focus-visible {
+  outline: 3px solid rgba(225, 164, 59, 0.55);
+  outline-offset: 6px;
+}
+
 .sermon-card img {
   width: 100%;
   height: auto;
@@ -556,6 +550,16 @@ p {
   object-fit: cover;
   border-radius: 3px;
   display: block;
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.sermon-card:hover img {
+  filter: saturate(1.05) contrast(1.02);
+  transform: translateY(-2px);
+}
+
+.sermon-card:hover h3 {
+  color: var(--gold);
 }
 
 .sermon-meta {
@@ -895,6 +899,9 @@ p {
 
   .site-header {
     grid-template-columns: 76px 1fr;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
   }
 
   .nav {
@@ -903,8 +910,9 @@ p {
 
   .mobile-menu {
     position: relative;
-    display: flex;
+    display: block;
     justify-self: end;
+    margin-left: auto;
     padding-top: 15px;
     z-index: 5;
   }
@@ -919,7 +927,7 @@ p {
     gap: 5px;
     border: 1px solid rgba(36, 36, 34, 0.2);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.92);
     color: var(--ink);
     cursor: pointer;
     backdrop-filter: blur(12px);
@@ -1000,25 +1008,19 @@ p {
   }
 
   .hero-copy > p {
+    display: block;
     font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .hero-copy > p span {
+    display: block;
   }
 
   .hero-copy h1 {
     max-width: 350px;
     font-size: 42px;
     line-height: 49px;
-  }
-
-  .hero-actions {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    margin-top: 40px;
-  }
-
-  .button {
-    min-height: 54px;
-    padding: 16px 18px;
   }
 
   .feature-wrap {
@@ -1069,8 +1071,15 @@ p {
 
   .location-card {
     justify-self: start;
+    width: 100%;
+    align-items: flex-start;
     margin-top: 64px;
     margin-left: 0;
+    text-align: left;
+  }
+
+  .location-card .pin {
+    align-self: center;
   }
 
   .mini-date {

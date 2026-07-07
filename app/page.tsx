@@ -72,6 +72,9 @@ const FacebookIcon = () => (
   </svg>
 );
 
+const churchAddress = "Sector 22, Dwarka, Delhi, 110077";
+const youtubeChannelUrl = "https://www.youtube.com/@cbfdwarka";
+
 const featureCards = [
   {
     title: "What We Believe",
@@ -95,7 +98,7 @@ const featureCards = [
 
 const events = [
   {
-    time: "Sun • 9:00 AM",
+    time: "Sun • 10:30 AM",
     title: "Sunday Worship",
     body: "Gather for teaching, worship, and community - a gospel centric service for all ages.",
   },
@@ -156,16 +159,11 @@ export default function Home() {
           <MobileMenu />
         </header>
         <div className="hero-copy">
-          <p>Welcome to Christian Believers fellowship</p>
+          <p>
+            <span>WELCOME TO</span>
+            <span>CHRISTIAN BELIEVERS FELLOWSHIP</span>
+          </p>
           <h1>A Gospel Centric Church in Dwarka, New Delhi</h1>
-          <div className="hero-actions">
-            <a className="button primary" href="#visit">
-              Plan Your Visit <Arrow />
-            </a>
-            <a className="button secondary" href="#sermons">
-              Watch Sermons <Arrow dark />
-            </a>
-          </div>
         </div>
       </section>
       <div className="sunday-bg" aria-hidden="true" />
@@ -213,7 +211,7 @@ export default function Home() {
           <address className="location-card">
             <LocationPin />
             <strong>Mount Carmel School</strong>
-            <span>Sector 22 Dwarka, Dwarka, Delhi, 110077</span>
+            <span>{churchAddress}</span>
           </address>
         </div>
       </section>
@@ -241,11 +239,18 @@ export default function Home() {
             <h2 id="sermons-title">Featured Sermons</h2>
             <p>Rooted in the Word — listen to recent teachings and series.</p>
           </div>
-          <a className="watch-all" href="#sermons">Watch All Sermons <Arrow dark /></a>
+          <a className="watch-all" href={youtubeChannelUrl} target="_blank" rel="noreferrer">Watch All Sermons <Arrow dark /></a>
         </div>
         <div className="sermon-grid">
           {sermons.map((sermon) => (
-            <article className="sermon-card" key={sermon.title}>
+            <a
+              className="sermon-card"
+              href={youtubeChannelUrl}
+              key={sermon.title}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Watch sermons on YouTube: ${sermon.title}`}
+            >
               <img src={sermon.image} alt="" width={356} height={200} loading="eager" />
               <div className="sermon-meta">
                 <span>{sermon.number}</span>
@@ -253,7 +258,7 @@ export default function Home() {
               </div>
               <h3>{sermon.title}</h3>
               <p>{sermon.body}</p>
-            </article>
+            </a>
           ))}
         </div>
       </section>
@@ -263,7 +268,7 @@ export default function Home() {
           <div className="footer-brand">
             <h2>CBF Dwarka</h2>
             <strong>Mount Carmel School</strong>
-            <p>Sector 22 Dwarka, Dwarka, Delhi, 110077</p>
+            <p>{churchAddress}</p>
           </div>
           <div className="footer-contact">
             <h3>Contact Us</h3>
