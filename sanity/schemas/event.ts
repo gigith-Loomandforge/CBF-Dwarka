@@ -4,6 +4,14 @@ export const eventType = defineType({
   name: "event",
   title: "Event",
   type: "document",
+  validation: (rule) =>
+    rule.custom((document) => {
+      if (document?.dateTime || (document?.recurrenceDay && document?.recurrenceTime)) {
+        return true;
+      }
+
+      return "Add an event date/time for one-time events, or set a weekly recurrence day and time.";
+    }),
   groups: [
     { name: "content", title: "Event Content", default: true },
     { name: "homepage", title: "Homepage Display" },
@@ -30,7 +38,7 @@ export const eventType = defineType({
       title: "Sort order",
       type: "number",
       group: "settings",
-      description: "Lower numbers appear first.",
+      description: "Used only as a tie-breaker when events have the same upcoming date/time.",
       initialValue: 1,
     }),
     defineField({
@@ -38,7 +46,40 @@ export const eventType = defineType({
       title: "Event date/time",
       type: "datetime",
       group: "content",
-      description: "Use this for dated events. Recurring events can use the labels below.",
+      description: "Use this for one-time or irregular events. Weekly events can use the recurrence fields below.",
+    }),
+    defineField({
+      name: "recurrenceDay",
+      title: "Repeats weekly on",
+      type: "string",
+      group: "content",
+      description: "Use this for weekly recurring events such as Sunday Worship.",
+      options: {
+        list: [
+          { title: "Sunday", value: "sunday" },
+          { title: "Monday", value: "monday" },
+          { title: "Tuesday", value: "tuesday" },
+          { title: "Wednesday", value: "wednesday" },
+          { title: "Thursday", value: "thursday" },
+          { title: "Friday", value: "friday" },
+          { title: "Saturday", value: "saturday" },
+        ],
+      },
+    }),
+    defineField({
+      name: "recurrenceTime",
+      title: "Weekly recurrence time",
+      type: "string",
+      group: "content",
+      description: "Use 24-hour HH:mm format, e.g. 10:30 or 18:30.",
+      validation: (rule) =>
+        rule.custom((value, context) => {
+          if (!value) {
+            return context.document?.recurrenceDay ? "Add a weekly recurrence time." : true;
+          }
+
+          return /^([01]\d|2[0-3]):[0-5]\d$/.test(value) ? true : "Use 24-hour HH:mm format, e.g. 10:30.";
+        }),
     }),
     defineField({
       name: "scheduleLabel",
@@ -115,12 +156,19 @@ export const eventType = defineType({
     select: {
       title: "title",
       subtitle: "scheduleLabel",
+      dateTime: "dateTime",
+      recurrenceDay: "recurrenceDay",
+      recurrenceTime: "recurrenceTime",
       showOnHomepage: "showOnHomepage",
     },
-    prepare({ title, subtitle, showOnHomepage }) {
+    prepare({ title, subtitle, dateTime, recurrenceDay, recurrenceTime, showOnHomepage }) {
+      const recurrenceLabel =
+        recurrenceDay && recurrenceTime ? `Every ${recurrenceDay} at ${recurrenceTime}` : "";
+      const timing = subtitle || recurrenceLabel || dateTime || "No schedule set";
+
       return {
         title,
-        subtitle: `${subtitle || "No schedule set"}${showOnHomepage ? "" : " - hidden from homepage"}`,
+        subtitle: `${timing}${showOnHomepage ? "" : " - hidden from homepage"}`,
       };
     },
   },

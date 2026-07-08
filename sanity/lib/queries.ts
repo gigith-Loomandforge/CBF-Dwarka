@@ -1,8 +1,12 @@
 import { groq } from "next-sanity";
 
 export const homepageQuery = groq`{
-  "events": *[_type == "event" && showOnHomepage == true] | order(coalesce(order, 999) asc, coalesce(dateTime, "9999-12-31") asc)[0...3] {
+  "events": *[_type == "event" && showOnHomepage == true && (!defined(dateTime) || dateTime >= now())] | order(coalesce(dateTime, "9999-12-31") asc, coalesce(order, 999) asc)[0...50] {
     title,
+    order,
+    dateTime,
+    recurrenceDay,
+    recurrenceTime,
     scheduleLabel,
     homepageDateLabel,
     homepageTimeLabel,
@@ -11,13 +15,5 @@ export const homepageQuery = groq`{
     description,
     ctaLabel,
     ctaHref
-  },
-  "featuredVideos": *[_type == "featuredVideo" && showOnHomepage == true] | order(coalesce(order, 999) asc, _updatedAt desc)[0...3] {
-    title,
-    description,
-    category,
-    youtubeUrl,
-    youtubeVideoId,
-    thumbnail
   }
 }`;

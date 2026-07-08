@@ -1,8 +1,6 @@
 import Image from "next/image";
-import type { SanityImageSource } from "@sanity/image-url";
 import { MobileMenu } from "./MobileMenu";
 import { client } from "../sanity/lib/client";
-import { urlForImage } from "../sanity/lib/image";
 import { homepageQuery } from "../sanity/lib/queries";
 
 export const revalidate = 300;
@@ -82,6 +80,20 @@ const churchAddress = "Sector 22, Dwarka, Delhi, 110077";
 const youtubeChannelUrl = "https://www.youtube.com/@cbfdwarka";
 const youtubeHandle = "@cbfdwarka";
 const maxRecentYouTubeVideos = 3;
+const eventTimeZone = "Asia/Kolkata";
+const maxHomepageEvents = 3;
+
+const weekdayIndexes = {
+  sunday: 0,
+  monday: 1,
+  tuesday: 2,
+  wednesday: 3,
+  thursday: 4,
+  friday: 5,
+  saturday: 6,
+} as const;
+
+type WeekdayKey = keyof typeof weekdayIndexes;
 
 const featureCards = [
   {
@@ -114,10 +126,19 @@ type ChurchEvent = {
   homepageTimeLabel: string;
   location: string;
   locationDetail: string;
+  dateTime?: string;
+  recurrenceDay?: WeekdayKey;
+  recurrenceTime?: string;
+  order?: number;
+  sortTimestamp?: number;
 };
 
 type SanityEvent = {
   title?: string;
+  order?: number;
+  dateTime?: string;
+  recurrenceDay?: string;
+  recurrenceTime?: string;
   scheduleLabel?: string;
   homepageDateLabel?: string;
   homepageTimeLabel?: string;
@@ -128,18 +149,8 @@ type SanityEvent = {
   ctaHref?: string;
 };
 
-type SanityFeaturedVideo = {
-  title?: string;
-  description?: string;
-  category?: string;
-  youtubeUrl?: string;
-  youtubeVideoId?: string;
-  thumbnail?: SanityImageSource;
-};
-
 type SanityHomepageContent = {
   events?: SanityEvent[];
-  featuredVideos?: SanityFeaturedVideo[];
 };
 
 const fallbackEvents: ChurchEvent[] = [
@@ -153,6 +164,9 @@ const fallbackEvents: ChurchEvent[] = [
     homepageTimeLabel: "10:30 AM",
     location: "Sanctuary",
     locationDetail: "Worship & community",
+    recurrenceDay: "sunday",
+    recurrenceTime: "10:30",
+    order: 1,
   },
   {
     time: "Fri • 6:30 PM",
@@ -164,6 +178,9 @@ const fallbackEvents: ChurchEvent[] = [
     homepageTimeLabel: "6:30 PM",
     location: "Sanctuary",
     locationDetail: "Youth fellowship",
+    recurrenceDay: "friday",
+    recurrenceTime: "18:30",
+    order: 2,
   },
   {
     time: "Wed • 7:30 PM",
@@ -175,6 +192,9 @@ const fallbackEvents: ChurchEvent[] = [
     homepageTimeLabel: "7:30 PM",
     location: "Sanctuary",
     locationDetail: "Bible study",
+    recurrenceDay: "wednesday",
+    recurrenceTime: "19:30",
+    order: 3,
   },
 ];
 
@@ -268,80 +288,249 @@ const getVideoDescription = (description = "") => {
   return firstSentence.length > 120 ? `${firstSentence.slice(0, 117)}...` : firstSentence;
 };
 
-const getYouTubeVideoId = (youtubeUrl = "") => {
-  try {
-    const url = new URL(youtubeUrl);
-
-    if (url.hostname.includes("youtu.be")) {
-      return url.pathname.split("/").filter(Boolean)[0] || "";
-    }
-
-    if (url.searchParams.get("v")) {
-      return url.searchParams.get("v") || "";
-    }
-
-    const parts = url.pathname.split("/").filter(Boolean);
-    const markerIndex = parts.findIndex((part) => ["embed", "shorts", "live"].includes(part));
-
-    return markerIndex >= 0 ? parts[markerIndex + 1] || "" : "";
-  } catch {
-    return "";
+const getWeekdayKey = (value?: string): WeekdayKey | undefined => {
+  if (!value || !Object.prototype.hasOwnProperty.call(weekdayIndexes, value)) {
+    return undefined;
   }
+
+  return value as WeekdayKey;
 };
+
+const parseClockTime = (value = "") => {
+  const match = value.trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i);
+
+  if (!match) {
+    return null;
+  }
+
+  let hour = Number(match[1]);
+  const minute = Number(match[2] || "0");
+  const meridiem = match[3]?.toLowerCase();
+
+  if (meridiem === "pm" && hour < 12) {
+    hour += 12;
+  }
+
+  if (meridiem === "am" && hour === 12) {
+    hour = 0;
+  }
+
+  if (hour > 23 || minute > 59) {
+    return null;
+  }
+
+  return { hour, minute };
+};
+
+const getZonedDateParts = (date: Date) => {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: eventTimeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const values: Record<string, string> = {};
+
+  parts.forEach((part) => {
+    if (part.type !== "literal") {
+      values[part.type] = part.value;
+    }
+  });
+
+  return {
+    year: Number(values.year),
+    month: Number(values.month),
+    day: Number(values.day),
+    hour: Number(values.hour),
+    minute: Number(values.minute),
+    second: Number(values.second),
+  };
+};
+
+const getTimeZoneOffsetMs = (date: Date) => {
+  const parts = getZonedDateParts(date);
+  const zonedAsUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+
+  return zonedAsUtc - date.getTime();
+};
+
+const zonedTimeToUtc = (year: number, month: number, day: number, hour: number, minute: number) => {
+  const utcGuess = Date.UTC(year, month - 1, day, hour, minute, 0);
+  const firstOffset = getTimeZoneOffsetMs(new Date(utcGuess));
+  const firstPass = new Date(utcGuess - firstOffset);
+  const secondOffset = getTimeZoneOffsetMs(firstPass);
+
+  return new Date(utcGuess - secondOffset);
+};
+
+const getZonedWeekdayIndex = (date: Date) => {
+  const weekday = new Intl.DateTimeFormat("en-US", {
+    timeZone: eventTimeZone,
+    weekday: "long",
+  })
+    .format(date)
+    .toLowerCase() as WeekdayKey;
+
+  return weekdayIndexes[weekday] ?? 0;
+};
+
+const getNextWeeklyOccurrence = (event: ChurchEvent, now: Date) => {
+  if (!event.recurrenceDay || !event.recurrenceTime) {
+    return null;
+  }
+
+  const time = parseClockTime(event.recurrenceTime);
+
+  if (!time) {
+    return null;
+  }
+
+  const nowParts = getZonedDateParts(now);
+  const currentWeekday = getZonedWeekdayIndex(now);
+  const targetWeekday = weekdayIndexes[event.recurrenceDay];
+  let daysUntilEvent = (targetWeekday - currentWeekday + 7) % 7;
+  let candidateLocalDate = new Date(Date.UTC(nowParts.year, nowParts.month - 1, nowParts.day + daysUntilEvent));
+  let candidate = zonedTimeToUtc(
+    candidateLocalDate.getUTCFullYear(),
+    candidateLocalDate.getUTCMonth() + 1,
+    candidateLocalDate.getUTCDate(),
+    time.hour,
+    time.minute,
+  );
+
+  if (candidate.getTime() <= now.getTime()) {
+    daysUntilEvent += 7;
+    candidateLocalDate = new Date(Date.UTC(nowParts.year, nowParts.month - 1, nowParts.day + daysUntilEvent));
+    candidate = zonedTimeToUtc(
+      candidateLocalDate.getUTCFullYear(),
+      candidateLocalDate.getUTCMonth() + 1,
+      candidateLocalDate.getUTCDate(),
+      time.hour,
+      time.minute,
+    );
+  }
+
+  return candidate;
+};
+
+const dateLabelFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: eventTimeZone,
+  weekday: "long",
+  month: "short",
+  day: "numeric",
+});
+
+const shortScheduleFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: eventTimeZone,
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+});
+
+const timeLabelFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: eventTimeZone,
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+});
+
+const formatTimeLabel = (date: Date) => timeLabelFormatter.format(date).replace(/\s/g, " ");
+
+const getEventDate = (event: ChurchEvent, now: Date) => {
+  if (event.dateTime) {
+    const date = new Date(event.dateTime);
+
+    if (Number.isNaN(date.getTime()) || date.getTime() < now.getTime()) {
+      return null;
+    }
+
+    return date;
+  }
+
+  return getNextWeeklyOccurrence(event, now);
+};
+
+const prepareChurchEvent = (event: ChurchEvent, now: Date): ChurchEvent | null => {
+  const eventDate = getEventDate(event, now);
+
+  if (event.dateTime && !eventDate) {
+    return null;
+  }
+
+  const recurringDateLabel = event.recurrenceDay
+    ? `Every ${event.recurrenceDay.charAt(0).toUpperCase()}${event.recurrenceDay.slice(1)}`
+    : "";
+
+  return {
+    ...event,
+    time: event.time || (eventDate ? `${shortScheduleFormatter.format(eventDate)} - ${formatTimeLabel(eventDate)}` : ""),
+    homepageDateLabel: event.homepageDateLabel || recurringDateLabel || (eventDate ? dateLabelFormatter.format(eventDate) : event.title),
+    homepageTimeLabel: event.homepageTimeLabel || (eventDate ? formatTimeLabel(eventDate) : ""),
+    sortTimestamp: eventDate?.getTime() ?? Number.MAX_SAFE_INTEGER,
+  };
+};
+
+const getUpcomingEvents = (events: ChurchEvent[], now: Date) =>
+  events
+    .map((event) => prepareChurchEvent(event, now))
+    .filter((event): event is ChurchEvent => Boolean(event))
+    .sort((a, b) => {
+      const dateDifference = (a.sortTimestamp ?? Number.MAX_SAFE_INTEGER) - (b.sortTimestamp ?? Number.MAX_SAFE_INTEGER);
+
+      if (dateDifference !== 0) {
+        return dateDifference;
+      }
+
+      const orderDifference = (a.order ?? 999) - (b.order ?? 999);
+
+      return orderDifference || a.title.localeCompare(b.title);
+    })
+    .slice(0, maxHomepageEvents);
 
 const getSanityHomepageContent = async () => {
   if (!client) {
-    return { events: [], featuredVideos: [] } satisfies SanityHomepageContent;
+    return { events: [] } satisfies SanityHomepageContent;
   }
 
   try {
     return await client.fetch<SanityHomepageContent>(homepageQuery);
   } catch {
-    return { events: [], featuredVideos: [] } satisfies SanityHomepageContent;
+    return { events: [] } satisfies SanityHomepageContent;
   }
 };
 
-const getCmsEvents = (events?: SanityEvent[]): ChurchEvent[] => {
+const getCmsEvents = (events: SanityEvent[] | undefined, now: Date): ChurchEvent[] => {
   if (!events?.length) {
     return [];
   }
 
-  return events
-    .filter((event) => event.title && event.scheduleLabel && event.description)
-    .map((event) => ({
-      time: event.scheduleLabel || "",
-      title: event.title || "",
-      body: event.description || "",
-      href: event.ctaHref || "#events",
-      ctaLabel: event.ctaLabel || "Learn More",
-      homepageDateLabel: event.homepageDateLabel || event.scheduleLabel?.split("•")[0]?.trim() || event.title || "",
-      homepageTimeLabel: event.homepageTimeLabel || event.scheduleLabel?.split("•")[1]?.trim() || "",
-      location: event.location || "Sanctuary",
-      locationDetail: event.locationDetail || "Worship & community",
-    }));
-};
-
-const getCmsSermons = (videos?: SanityFeaturedVideo[]): Sermon[] => {
-  if (!videos?.length) {
-    return [];
-  }
-
-  return videos
-    .filter((video) => video.title && video.youtubeUrl)
-    .map((video, index) => {
-      const youtubeVideoId = video.youtubeVideoId || getYouTubeVideoId(video.youtubeUrl);
-      const thumbnailUrl = urlForImage(video.thumbnail) || (youtubeVideoId ? `https://i.ytimg.com/vi/${youtubeVideoId}/hqdefault.jpg` : "");
+  const cmsEvents = events
+    .filter((event) => event.title && event.description)
+    .map((event) => {
+      const scheduleParts = event.scheduleLabel?.split(/[•-]/).map((part) => part.trim()) || [];
 
       return {
-        image: thumbnailUrl || "/assets/sermon-1.png",
-        number: String(index + 1).padStart(2, "0"),
-        kind: video.category || "Featured Video",
-        title: video.title || "CBF Dwarka Video",
-        body: getVideoDescription(video.description),
-        href: video.youtubeUrl || youtubeChannelUrl,
+        time: event.scheduleLabel || "",
+        title: event.title || "",
+        body: event.description || "",
+        href: event.ctaHref || "#events",
+        ctaLabel: event.ctaLabel || "Learn More",
+        homepageDateLabel: event.homepageDateLabel || scheduleParts[0] || "",
+        homepageTimeLabel: event.homepageTimeLabel || scheduleParts[1] || "",
+        location: event.location || "Sanctuary",
+        locationDetail: event.locationDetail || "Worship & community",
+        dateTime: event.dateTime,
+        recurrenceDay: getWeekdayKey(event.recurrenceDay),
+        recurrenceTime: event.recurrenceTime,
+        order: event.order,
       };
-    })
-    .slice(0, 3);
+    });
+
+  return getUpcomingEvents(cmsEvents, now);
 };
 
 const youtubeApiFetch = async <T,>(path: string, params: Record<string, string>, apiKey: string) => {
@@ -414,15 +603,15 @@ const getFeaturedSermons = async (): Promise<Sermon[]> => {
       videos.push(...(videoResponse.items || []));
     }
 
-    const featuredVideos = videos
+    const recentVideos = videos
       .filter((video) => video.id && video.snippet?.title && getBestThumbnail(video.snippet.thumbnails))
       .slice(0, maxRecentYouTubeVideos);
 
-    if (featuredVideos.length < maxRecentYouTubeVideos) {
+    if (recentVideos.length < maxRecentYouTubeVideos) {
       return fallbackSermons;
     }
 
-    return featuredVideos.map((video, index) => ({
+    return recentVideos.map((video, index) => ({
       image: getBestThumbnail(video.snippet?.thumbnails),
       number: String(index + 1).padStart(2, "0"),
       kind: "Recent Video",
@@ -436,12 +625,12 @@ const getFeaturedSermons = async (): Promise<Sermon[]> => {
 };
 
 export default async function Home() {
+  const now = new Date();
   const homepageContent = await getSanityHomepageContent();
-  const events = getCmsEvents(homepageContent.events);
-  const primaryEvent = events[0] || fallbackEvents[0];
-  const sermons = getCmsSermons(homepageContent.featuredVideos);
-  const visibleEvents = events.length ? events : fallbackEvents;
-  const visibleSermons = sermons.length ? sermons : await getFeaturedSermons();
+  const events = getCmsEvents(homepageContent.events, now);
+  const visibleEvents = events.length ? events : getUpcomingEvents(fallbackEvents, now);
+  const primaryEvent = visibleEvents[0] || prepareChurchEvent(fallbackEvents[0], now) || fallbackEvents[0];
+  const visibleSermons = await getFeaturedSermons();
 
   return (
     <main>
@@ -481,11 +670,11 @@ export default async function Home() {
                 <h2>{card.title}</h2>
                 {card.title === "Upcoming Events" ? (
                   <div className="mini-event">
+                    <h3>{primaryEvent.title}</h3>
                     <div className="mini-date">
                       <strong>{primaryEvent.homepageDateLabel}</strong>
                       <span>{primaryEvent.homepageTimeLabel}</span>
                     </div>
-                    <h3>{primaryEvent.title}</h3>
                   </div>
                 ) : (
                   <p>{card.body}</p>

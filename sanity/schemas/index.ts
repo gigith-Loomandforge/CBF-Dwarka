@@ -1,4 +1,3 @@
 import { eventType } from "./event";
-import { featuredVideoType } from "./featuredVideo";
 
-export const schemaTypes = [eventType, featuredVideoType];
+export const schemaTypes = [eventType];
