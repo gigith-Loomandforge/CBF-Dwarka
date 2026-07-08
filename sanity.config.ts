@@ -7,7 +7,18 @@ export default defineConfig({
   basePath: studioUrl,
   dataset,
   projectId: projectId || "missing-project-id",
-  plugins: [structureTool()],
+  plugins: [
+    structureTool({
+      structure: (S) =>
+        S.list()
+          .title("CBF Dwarka CMS")
+          .items([
+            S.documentTypeListItem("event").title("Events"),
+            S.divider(),
+            ...S.documentTypeListItems().filter((item) => item.getId() !== "event"),
+          ]),
+    }),
+  ],
   schema: {
     types: schemaTypes,
   },

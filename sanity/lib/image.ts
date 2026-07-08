@@ -1,8 +1,8 @@
-import imageUrlBuilder from "@sanity/image-url";
+import { createImageUrlBuilder } from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url";
 import { dataset, hasSanityConfig, projectId } from "../env";
 
-const builder = hasSanityConfig ? imageUrlBuilder({ projectId, dataset }) : null;
+const builder = hasSanityConfig ? createImageUrlBuilder({ projectId, dataset }) : null;
 
 export const urlForImage = (source?: SanityImageSource) => {
   if (!builder || !source) {

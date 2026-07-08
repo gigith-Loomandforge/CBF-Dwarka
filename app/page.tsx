@@ -5,7 +5,7 @@ import { client } from "../sanity/lib/client";
 import { urlForImage } from "../sanity/lib/image";
 import { homepageQuery } from "../sanity/lib/queries";
 
-export const revalidate = 43200;
+export const revalidate = 300;
 
 const Arrow = ({ dark = false }: { dark?: boolean }) => (
   <svg aria-hidden="true" viewBox="0 0 34 16" className="arrow-icon">
@@ -81,7 +81,7 @@ const FacebookIcon = () => (
 const churchAddress = "Sector 22, Dwarka, Delhi, 110077";
 const youtubeChannelUrl = "https://www.youtube.com/@cbfdwarka";
 const youtubeHandle = "@cbfdwarka";
-const maxYouTubeVideosToScan = 500;
+const maxRecentYouTubeVideos = 3;
 
 const featureCards = [
   {
@@ -295,7 +295,7 @@ const getSanityHomepageContent = async () => {
   }
 
   try {
-    return client.fetch<SanityHomepageContent>(homepageQuery);
+    return await client.fetch<SanityHomepageContent>(homepageQuery);
   } catch {
     return { events: [], featuredVideos: [] } satisfies SanityHomepageContent;
   }
@@ -383,35 +383,21 @@ const getFeaturedSermons = async (): Promise<Sermon[]> => {
       return fallbackSermons;
     }
 
-    const videoIds: string[] = [];
-    let pageToken = "";
+    const playlistItems = await youtubeApiFetch<YouTubePlaylistItemsResponse>(
+      "playlistItems",
+      {
+        playlistId: uploadsPlaylistId,
+        part: "contentDetails",
+        maxResults: String(maxRecentYouTubeVideos),
+      },
+      apiKey,
+    );
 
-    while (videoIds.length < maxYouTubeVideosToScan) {
-      const playlistItems = await youtubeApiFetch<YouTubePlaylistItemsResponse>(
-        "playlistItems",
-        {
-          playlistId: uploadsPlaylistId,
-          part: "contentDetails",
-          maxResults: "50",
-          ...(pageToken ? { pageToken } : {}),
-        },
-        apiKey,
-      );
-
-      playlistItems.items?.forEach((item) => {
-        const videoId = item.contentDetails?.videoId;
-
-        if (videoId && videoIds.length < maxYouTubeVideosToScan) {
-          videoIds.push(videoId);
-        }
-      });
-
-      if (!playlistItems.nextPageToken) {
-        break;
-      }
-
-      pageToken = playlistItems.nextPageToken;
-    }
+    const videoIds =
+      playlistItems.items
+        ?.map((item) => item.contentDetails?.videoId)
+        .filter((videoId): videoId is string => Boolean(videoId))
+        .slice(0, maxRecentYouTubeVideos) || [];
 
     const videos: NonNullable<YouTubeVideosResponse["items"]> = [];
 
@@ -420,7 +406,7 @@ const getFeaturedSermons = async (): Promise<Sermon[]> => {
         "videos",
         {
           id: videoIds.slice(index, index + 50).join(","),
-          part: "snippet,statistics",
+          part: "snippet",
         },
         apiKey,
       );
@@ -430,17 +416,16 @@ const getFeaturedSermons = async (): Promise<Sermon[]> => {
 
     const featuredVideos = videos
       .filter((video) => video.id && video.snippet?.title && getBestThumbnail(video.snippet.thumbnails))
-      .sort((left, right) => Number(right.statistics?.viewCount || 0) - Number(left.statistics?.viewCount || 0))
-      .slice(0, 3);
+      .slice(0, maxRecentYouTubeVideos);
 
-    if (featuredVideos.length < 3) {
+    if (featuredVideos.length < maxRecentYouTubeVideos) {
       return fallbackSermons;
     }
 
     return featuredVideos.map((video, index) => ({
       image: getBestThumbnail(video.snippet?.thumbnails),
       number: String(index + 1).padStart(2, "0"),
-      kind: "Most Viewed",
+      kind: "Recent Video",
       title: video.snippet?.title || "CBF Dwarka Sermon",
       body: getVideoDescription(video.snippet?.description),
       href: `https://www.youtube.com/watch?v=${video.id}`,
@@ -461,11 +446,11 @@ export default async function Home() {
   return (
     <main>
       <section className="hero" aria-label="CBF Dwarka introduction">
-        <Image src="/assets/hero.png" alt="" fill priority sizes="100vw" className="hero-image" />
+        <Image src="/assets/hero.png?v=20260708" alt="" fill priority sizes="100vw" className="hero-image" unoptimized />
         <div className="hero-gradient" />
         <header className="site-header">
           <a className="logo" href="#" aria-label="CBF Dwarka home">
-            <Image src="/assets/logo.svg" alt="CBF Dwarka" width={94} height={120} priority />
+            <Image src="/assets/logo-figma.png" alt="CBF Dwarka" width={97} height={130} priority />
           </a>
           <nav className="nav" aria-label="Primary navigation">
             <a className="active" href="#">Home</a>
@@ -501,7 +486,6 @@ export default async function Home() {
                       <span>{primaryEvent.homepageTimeLabel}</span>
                     </div>
                     <h3>{primaryEvent.title}</h3>
-                    <p>{primaryEvent.location} <span>• {primaryEvent.locationDetail}</span></p>
                   </div>
                 ) : (
                   <p>{card.body}</p>
@@ -518,7 +502,7 @@ export default async function Home() {
           <div className="visit-copy">
             <span className="date-badge">Sun • 10:30 AM</span>
             <h2 id="visit-title">Join Us for<br />Sunday Worship</h2>
-            <p className="overline">Every Sunday</p>
+            <p className="overline">Every Sunday - 10:30 AM</p>
             <span className="gold-line" />
             <p className="visit-body">
               Come as you are and encounter the living God. Spirit-filled worship, Gospel-centered preaching, and a community that welcomes all.
@@ -571,7 +555,7 @@ export default async function Home() {
               aria-label={`Watch sermons on YouTube: ${sermon.title}`}
             >
               <img src={sermon.image} alt="" width={356} height={200} loading="eager" />
-              <div className="sermon-meta">
+              <div className="sermon-meta" aria-hidden="true">
                 <span>{sermon.number}</span>
                 <strong>{sermon.kind}</strong>
               </div>

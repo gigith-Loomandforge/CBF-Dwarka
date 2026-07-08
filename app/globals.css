@@ -41,11 +41,14 @@ main {
 .sunday-bg {
   position: absolute;
   z-index: 0;
-  top: 985px;
-  left: 0;
-  right: 0;
+  top: 845px;
+  left: 50%;
   height: 1137px;
-  background: url("/assets/bg-sunday.png") center top / cover no-repeat;
+  width: 2234px;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0) 84.8%, #fff 100%),
+    url("/assets/bg-sunday.png") center top / cover no-repeat;
   pointer-events: none;
 }
 
@@ -58,15 +61,14 @@ main {
 
 .hero-image {
   object-fit: cover;
-  object-position: center top;
-  transform: translateY(70px) scale(1.01);
+  object-position: center center;
+  transform: scale(1.1);
 }
 
 .hero-gradient {
   position: absolute;
-  inset: 0 0 auto;
-  height: 426px;
-  background: linear-gradient(180deg, var(--hero-wash) 0%, var(--hero-wash) 64.554%, rgba(199, 204, 210, 0) 100%);
+  inset: 0;
+  background: rgba(34, 30, 30, 0.82);
   pointer-events: none;
 }
 
@@ -80,28 +82,42 @@ main {
 
 .logo {
   position: absolute;
-  left: 0;
+  left: 47px;
   top: 0;
   display: inline-flex;
   width: 94px;
   min-height: 124px;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
+}
+
+.logo::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -47px;
+  top: -31px;
+  width: 185px;
+  height: 205px;
+  background: #f5f5f0;
 }
 
 .logo img {
+  position: relative;
+  z-index: 1;
   display: block;
-  width: 94px;
+  width: 97px;
   height: auto;
   object-fit: contain;
 }
 
 .nav {
   position: absolute;
-  left: 189px;
+  left: 222px;
   top: 60px;
   display: flex;
   gap: 57px;
+  color: #fff;
   font-size: 19px;
   font-family: Inter, Arial, sans-serif;
 }
@@ -125,6 +141,7 @@ main {
   top: 57px;
   width: 72px;
   text-align: center;
+  color: #fff;
   font-size: 19px;
 }
 
@@ -136,8 +153,8 @@ main {
   position: relative;
   z-index: 1;
   width: var(--content);
-  margin: 186px auto 0;
-  color: #262624;
+  margin: 278px auto 0;
+  color: #fff;
 }
 
 .hero-copy > p {
@@ -147,8 +164,8 @@ main {
   margin: 0 0 16px;
   font-family: Montserrat, Arial, sans-serif;
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 
 .hero-copy > p span:last-child {
@@ -179,7 +196,7 @@ p {
 .feature-wrap {
   position: relative;
   z-index: 3;
-  margin-top: -131px;
+  margin-top: -260px;
 }
 
 .feature-grid {
@@ -253,7 +270,7 @@ p {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  margin-bottom: 11px;
+  margin-bottom: 0;
   padding: 7px 10px;
   color: var(--gold-2);
   border: 1px solid rgba(212, 160, 23, 0.15);
@@ -268,14 +285,14 @@ p {
 }
 
 .mini-event h3 {
-  margin-bottom: 7px;
+  margin: 11px 0 0;
   font-size: 18px;
   line-height: 1.3;
 }
 
 .visit {
   position: relative;
-  min-height: 775px;
+  min-height: 575px;
   margin-top: -3px;
 }
 
@@ -291,18 +308,21 @@ p {
 .visit-layout {
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: 640px 1fr;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  padding-top: 170px;
+  justify-content: flex-start;
+  padding-top: 96px;
+  text-align: center;
 }
 
 .visit-copy {
   min-width: 0;
+  width: min(714px, 100%);
 }
 
 .date-badge {
-  display: inline-flex;
+  display: none;
   margin-bottom: 20px;
   padding: 6px 10px;
   border-radius: 2px;
@@ -340,12 +360,12 @@ p {
   display: block;
   width: 40px;
   border-top: 2px solid var(--gold-soft);
-  margin-bottom: 20px;
+  margin: 0 auto 20px;
 }
 
 .visit-body {
   width: 100%;
-  max-width: 640px;
+  max-width: 714px;
   margin-bottom: 20px;
   color: var(--muted);
   font-family: Geist, Inter, sans-serif;
@@ -380,21 +400,20 @@ p {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-self: end;
   width: 265px;
-  margin-top: 300px;
+  margin-top: 13px;
   font-style: normal;
   text-align: center;
   color: var(--ink);
 }
 
 .pin {
-  width: 70px;
+  width: 34px;
   height: auto;
   aspect-ratio: 7 / 9;
   display: block;
   flex: 0 0 auto;
-  margin-bottom: 11px;
+  margin-bottom: 8px;
   filter: drop-shadow(0 3px 12px rgba(0, 0, 0, 0.18));
 }
 
@@ -412,8 +431,8 @@ p {
 .events {
   position: relative;
   z-index: 2;
-  margin-top: -28px;
-  padding-bottom: 90px;
+  margin-top: 0;
+  padding-bottom: 64px;
 }
 
 .section-header {
@@ -445,7 +464,7 @@ p {
 
 .event-grid {
   width: var(--content);
-  margin: 96px auto 0;
+  margin: 60px auto 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
@@ -554,6 +573,7 @@ p {
   object-fit: cover;
   border-radius: 3px;
   display: block;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15);
   transition: transform 180ms ease, filter 180ms ease;
 }
 
@@ -567,7 +587,7 @@ p {
 }
 
 .sermon-meta {
-  display: flex;
+  display: none;
   gap: 9px;
   align-items: center;
   margin: 13px 0 3px;
@@ -588,17 +608,20 @@ p {
 }
 
 .sermon-card h3 {
-  margin: 0 0 3px;
+  margin: 13px 0 3px;
   color: var(--deep);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
 }
 
 .sermon-card p {
   margin: 0;
   color: var(--deep);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .footer {
@@ -713,15 +736,11 @@ p {
   .nav {
     gap: 32px;
   }
-
-  .visit-layout {
-    grid-template-columns: minmax(0, 1fr) 300px;
-  }
 }
 
 @media (max-width: 900px) {
   .sunday-bg {
-    top: 820px;
+    top: 760px;
   }
 
   .hero {
@@ -729,17 +748,12 @@ p {
   }
 
   .hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background: linear-gradient(90deg, rgba(249, 247, 244, 0.88) 0%, rgba(249, 247, 244, 0.58) 44%, rgba(249, 247, 244, 0) 76%);
+    content: none;
   }
 
   .hero-image {
-    transform: none;
-    object-position: 72% top;
+    transform: scale(1.18);
+    object-position: 58% center;
   }
 
   .site-header {
@@ -751,9 +765,18 @@ p {
   }
 
   .logo {
-    position: static;
+    position: relative;
+    left: auto;
+    top: auto;
     width: 74px;
     min-height: 88px;
+  }
+
+  .logo::before {
+    left: -24px;
+    top: -20px;
+    width: 132px;
+    height: 146px;
   }
 
   .logo img {
@@ -778,6 +801,7 @@ p {
   .hero-copy {
     z-index: 2;
     margin-top: 130px;
+    color: #fff;
   }
 
   .hero-copy h1 {
@@ -787,7 +811,7 @@ p {
   }
 
   .feature-wrap {
-    margin-top: -94px;
+    margin-top: -210px;
   }
 
   .feature-grid {
@@ -819,12 +843,11 @@ p {
   }
 
   .visit {
-    min-height: 690px;
+    min-height: 560px;
   }
 
   .visit-layout {
-    grid-template-columns: minmax(0, 1fr) 245px;
-    padding-top: 145px;
+    padding-top: 88px;
   }
 
   .visit h2 {
@@ -837,19 +860,18 @@ p {
   }
 
   .location-card {
-    justify-self: end;
-    margin-top: 260px;
+    margin-top: 18px;
     margin-left: 0;
   }
 
   .events {
     margin-top: 0;
-    padding-bottom: 100px;
+    padding-bottom: 80px;
   }
 
   .event-grid,
   .sermon-grid {
-    margin-top: 64px;
+    margin-top: 52px;
     gap: 16px;
   }
 
@@ -881,12 +903,12 @@ p {
 
 @media (max-width: 640px) {
   .sunday-bg {
-    top: 760px;
+    top: 730px;
     background-position: center top;
   }
 
   :root {
-    --content: calc(100vw - 32px);
+    --content: min(calc(100vw - 32px), 358px);
   }
 
   .hero {
@@ -894,18 +916,41 @@ p {
   }
 
   .hero-image {
-    object-position: 66% top;
+    object-position: 58% 42%;
+    transform: scale(1.28);
   }
 
   .hero::after {
-    background: linear-gradient(90deg, rgba(249, 247, 244, 0.84) 0%, rgba(249, 247, 244, 0.38) 64%, rgba(249, 247, 244, 0) 100%);
+    content: none;
   }
 
   .site-header {
+    width: var(--content);
+    z-index: 100;
     grid-template-columns: 76px 1fr;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 0;
+  }
+
+  .logo {
+    left: 0;
+    width: 116px;
+    min-height: 170px;
+  }
+
+  .logo::before {
+    left: 0;
+    top: -20px;
+    width: 116px;
+    height: 170px;
+  }
+
+  .logo img {
+    width: 88px;
   }
 
   .nav {
@@ -913,12 +958,15 @@ p {
   }
 
   .mobile-menu {
-    position: relative;
+    position: fixed;
+    top: 20px;
+    right: calc((100vw - var(--content)) / 2);
+    left: auto;
     display: block;
     justify-self: end;
     margin-left: auto;
-    padding-top: 15px;
-    z-index: 5;
+    padding-top: 0;
+    z-index: 120;
   }
 
   .mobile-menu-button {
@@ -929,10 +977,10 @@ p {
     align-items: center;
     justify-content: center;
     gap: 5px;
-    border: 1px solid rgba(36, 36, 34, 0.2);
+    border: 1px solid rgba(225, 164, 59, 0.5);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.92);
-    color: var(--ink);
+    background: rgba(245, 245, 240, 0.96);
+    color: var(--deep);
     cursor: pointer;
     backdrop-filter: blur(12px);
     box-shadow: 0 10px 28px rgba(12, 12, 13, 0.12);
@@ -966,7 +1014,7 @@ p {
 
   .mobile-menu-panel {
     position: absolute;
-    top: 72px;
+    top: 60px;
     right: 0;
     width: min(264px, calc(100vw - 32px));
     display: grid;
@@ -978,7 +1026,7 @@ p {
     box-shadow: 0 22px 44px rgba(12, 12, 13, 0.28);
     opacity: 0;
     pointer-events: none;
-    z-index: 10;
+    z-index: 130;
     transform: translateY(-8px);
     transition: opacity 160ms ease, transform 160ms ease;
   }
@@ -1028,7 +1076,7 @@ p {
   }
 
   .feature-wrap {
-    margin-top: -48px;
+    margin-top: -88px;
   }
 
   .feature-grid,
@@ -1055,12 +1103,11 @@ p {
   }
 
   .visit {
-    min-height: 760px;
+    min-height: 620px;
   }
 
   .visit-layout {
-    grid-template-columns: 1fr;
-    padding-top: 120px;
+    padding-top: 86px;
   }
 
   .visit h2,
@@ -1074,12 +1121,11 @@ p {
   }
 
   .location-card {
-    justify-self: start;
     width: 100%;
-    align-items: flex-start;
-    margin-top: 64px;
+    align-items: center;
+    margin-top: 20px;
     margin-left: 0;
-    text-align: left;
+    text-align: center;
   }
 
   .location-card .pin {
@@ -1099,7 +1145,7 @@ p {
 
   .event-grid,
   .sermon-grid {
-    margin-top: 54px;
+    margin-top: 40px;
   }
 
   .event-card {
@@ -1152,11 +1198,26 @@ p {
 
   .logo,
   .logo img {
-    width: 62px;
+    width: 78px;
+  }
+
+  .logo {
+    width: 100px;
+    min-height: 150px;
+  }
+
+  .logo::before {
+    left: 0;
+    top: -16px;
+    width: 100px;
+    height: 150px;
   }
 
   .mobile-menu {
-    padding-top: 8px;
+    top: 16px;
+    right: calc((100vw - var(--content)) / 2);
+    left: auto;
+    padding-top: 0;
   }
 
   .mobile-menu-button {

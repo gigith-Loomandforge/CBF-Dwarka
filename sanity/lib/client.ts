@@ -6,6 +6,6 @@ export const client = hasSanityConfig
       apiVersion,
       dataset,
       projectId,
-      useCdn: true,
+      useCdn: false,
     })
   : null;
