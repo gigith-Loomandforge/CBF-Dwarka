@@ -1,5 +1,9 @@
 import Image from "next/image";
+import type { SanityImageSource } from "@sanity/image-url";
 import { MobileMenu } from "./MobileMenu";
+import { client } from "../sanity/lib/client";
+import { urlForImage } from "../sanity/lib/image";
+import { homepageQuery } from "../sanity/lib/queries";
 
 export const revalidate = 43200;
 
@@ -100,21 +104,77 @@ const featureCards = [
   },
 ];
 
-const events = [
+type ChurchEvent = {
+  time: string;
+  title: string;
+  body: string;
+  href: string;
+  ctaLabel: string;
+  homepageDateLabel: string;
+  homepageTimeLabel: string;
+  location: string;
+  locationDetail: string;
+};
+
+type SanityEvent = {
+  title?: string;
+  scheduleLabel?: string;
+  homepageDateLabel?: string;
+  homepageTimeLabel?: string;
+  location?: string;
+  locationDetail?: string;
+  description?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+};
+
+type SanityFeaturedVideo = {
+  title?: string;
+  description?: string;
+  category?: string;
+  youtubeUrl?: string;
+  youtubeVideoId?: string;
+  thumbnail?: SanityImageSource;
+};
+
+type SanityHomepageContent = {
+  events?: SanityEvent[];
+  featuredVideos?: SanityFeaturedVideo[];
+};
+
+const fallbackEvents: ChurchEvent[] = [
   {
     time: "Sun • 10:30 AM",
     title: "Sunday Worship",
     body: "Gather for teaching, worship, and community - a gospel centric service for all ages.",
+    href: "#events",
+    ctaLabel: "Learn More",
+    homepageDateLabel: "Every Sunday",
+    homepageTimeLabel: "10:30 AM",
+    location: "Sanctuary",
+    locationDetail: "Worship & community",
   },
   {
     time: "Fri • 6:30 PM",
     title: "Youth Fellowship",
     body: "A space for students to connect, study scripture, and build friendships.",
+    href: "#events",
+    ctaLabel: "Learn More",
+    homepageDateLabel: "Friday",
+    homepageTimeLabel: "6:30 PM",
+    location: "Sanctuary",
+    locationDetail: "Youth fellowship",
   },
   {
     time: "Wed • 7:30 PM",
     title: "Bible Study",
     body: "Dig deeper into the Word with teaching, discussion, and prayer.",
+    href: "#events",
+    ctaLabel: "Learn More",
+    homepageDateLabel: "Wednesday",
+    homepageTimeLabel: "7:30 PM",
+    location: "Sanctuary",
+    locationDetail: "Bible study",
   },
 ];
 
@@ -206,6 +266,82 @@ const getVideoDescription = (description = "") => {
 
   const firstSentence = cleanDescription.match(/^.{1,120}?(?:[.!?](?:\s|$)|$)/)?.[0]?.trim() || cleanDescription.slice(0, 120).trim();
   return firstSentence.length > 120 ? `${firstSentence.slice(0, 117)}...` : firstSentence;
+};
+
+const getYouTubeVideoId = (youtubeUrl = "") => {
+  try {
+    const url = new URL(youtubeUrl);
+
+    if (url.hostname.includes("youtu.be")) {
+      return url.pathname.split("/").filter(Boolean)[0] || "";
+    }
+
+    if (url.searchParams.get("v")) {
+      return url.searchParams.get("v") || "";
+    }
+
+    const parts = url.pathname.split("/").filter(Boolean);
+    const markerIndex = parts.findIndex((part) => ["embed", "shorts", "live"].includes(part));
+
+    return markerIndex >= 0 ? parts[markerIndex + 1] || "" : "";
+  } catch {
+    return "";
+  }
+};
+
+const getSanityHomepageContent = async () => {
+  if (!client) {
+    return { events: [], featuredVideos: [] } satisfies SanityHomepageContent;
+  }
+
+  try {
+    return client.fetch<SanityHomepageContent>(homepageQuery);
+  } catch {
+    return { events: [], featuredVideos: [] } satisfies SanityHomepageContent;
+  }
+};
+
+const getCmsEvents = (events?: SanityEvent[]): ChurchEvent[] => {
+  if (!events?.length) {
+    return [];
+  }
+
+  return events
+    .filter((event) => event.title && event.scheduleLabel && event.description)
+    .map((event) => ({
+      time: event.scheduleLabel || "",
+      title: event.title || "",
+      body: event.description || "",
+      href: event.ctaHref || "#events",
+      ctaLabel: event.ctaLabel || "Learn More",
+      homepageDateLabel: event.homepageDateLabel || event.scheduleLabel?.split("•")[0]?.trim() || event.title || "",
+      homepageTimeLabel: event.homepageTimeLabel || event.scheduleLabel?.split("•")[1]?.trim() || "",
+      location: event.location || "Sanctuary",
+      locationDetail: event.locationDetail || "Worship & community",
+    }));
+};
+
+const getCmsSermons = (videos?: SanityFeaturedVideo[]): Sermon[] => {
+  if (!videos?.length) {
+    return [];
+  }
+
+  return videos
+    .filter((video) => video.title && video.youtubeUrl)
+    .map((video, index) => {
+      const youtubeVideoId = video.youtubeVideoId || getYouTubeVideoId(video.youtubeUrl);
+      const thumbnailUrl = urlForImage(video.thumbnail) || (youtubeVideoId ? `https://i.ytimg.com/vi/${youtubeVideoId}/hqdefault.jpg` : "");
+
+      return {
+        image: thumbnailUrl || "/assets/sermon-1.png",
+        number: String(index + 1).padStart(2, "0"),
+        kind: video.category || "Featured Video",
+        title: video.title || "CBF Dwarka Video",
+        body: getVideoDescription(video.description),
+        href: video.youtubeUrl || youtubeChannelUrl,
+      };
+    })
+    .slice(0, 3);
 };
 
 const youtubeApiFetch = async <T,>(path: string, params: Record<string, string>, apiKey: string) => {
@@ -315,7 +451,12 @@ const getFeaturedSermons = async (): Promise<Sermon[]> => {
 };
 
 export default async function Home() {
-  const sermons = await getFeaturedSermons();
+  const homepageContent = await getSanityHomepageContent();
+  const events = getCmsEvents(homepageContent.events);
+  const primaryEvent = events[0] || fallbackEvents[0];
+  const sermons = getCmsSermons(homepageContent.featuredVideos);
+  const visibleEvents = events.length ? events : fallbackEvents;
+  const visibleSermons = sermons.length ? sermons : await getFeaturedSermons();
 
   return (
     <main>
@@ -356,11 +497,11 @@ export default async function Home() {
                 {card.title === "Upcoming Events" ? (
                   <div className="mini-event">
                     <div className="mini-date">
-                      <strong>Every Sunday</strong>
-                      <span>10:30 AM</span>
+                      <strong>{primaryEvent.homepageDateLabel}</strong>
+                      <span>{primaryEvent.homepageTimeLabel}</span>
                     </div>
-                    <h3>Sunday Morning Service</h3>
-                    <p>Sanctuary <span>• Worship &amp; community</span></p>
+                    <h3>{primaryEvent.title}</h3>
+                    <p>{primaryEvent.location} <span>• {primaryEvent.locationDetail}</span></p>
                   </div>
                 ) : (
                   <p>{card.body}</p>
@@ -400,12 +541,12 @@ export default async function Home() {
           <p>Join us for worship, community, and discipleship — rooted in the Word and lived out in everyday life.</p>
         </div>
         <div className="event-grid">
-          {events.map((event) => (
+          {visibleEvents.map((event) => (
             <article className="event-card" key={event.title}>
               <span>{event.time}</span>
               <h3>{event.title}</h3>
               <p>{event.body}</p>
-              <a href="#events">Learn More →</a>
+              <a href={event.href}>{event.ctaLabel} →</a>
             </article>
           ))}
         </div>
@@ -420,7 +561,7 @@ export default async function Home() {
           <a className="watch-all" href={youtubeChannelUrl} target="_blank" rel="noreferrer">Watch All Sermons <Arrow dark /></a>
         </div>
         <div className="sermon-grid">
-          {sermons.map((sermon) => (
+          {visibleSermons.map((sermon) => (
             <a
               className="sermon-card"
               href={sermon.href}
