@@ -138,7 +138,8 @@ export default function AboutPage() {
     <main className="about-page">
       <header className="site-header about-header">
         <a className="logo about-logo" href="/" aria-label="CBF Dwarka home">
-          <Image src="/assets/logo-figma.png" alt="CBF Dwarka" width={97} height={130} priority />
+          <Image src="/assets/logo-mark.svg" alt="" width={42} height={64} priority />
+          <span className="brand-name"><strong>CBF</strong> Dwarka</span>
         </a>
         <nav className="nav about-nav" aria-label="Primary navigation">
           <a href="/">Home</a>
@@ -214,18 +215,13 @@ export default function AboutPage() {
           <h2 id="about-beliefs-title">What We Believe</h2>
           <p>Our doctrinal convictions based on the historic Christian faith.</p>
         </div>
-        <div className="about-accordion">
+        <div className="about-belief-grid">
           {beliefItems.map((item, index) => (
-            <details className="about-accordion-item" key={item.title} open={index === 0}>
-              <summary>
-                <span className="about-accordion-number">{String(index + 1).padStart(2, "0")}</span>
-                <span className="about-accordion-title">{item.title}</span>
-                <span className="about-accordion-icon" aria-hidden="true" />
-              </summary>
-              <div className="about-accordion-body">
-                <p>{item.body}</p>
-              </div>
-            </details>
+            <article className="about-belief-card" key={item.title}>
+              <span className="about-belief-number">{String(index + 1).padStart(2, "0")}</span>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </article>
           ))}
         </div>
       </section>
@@ -239,7 +235,7 @@ export default function AboutPage() {
           </div>
           <div className="footer-contact">
             <h3>Contact Us</h3>
-            <a href="mailto:enquiry@cbfdwarka.com">enquiry@cbfdwarka.com</a>
+            <a href="mailto:cbfdwarka2021@gmail.com">cbfdwarka2021@gmail.com</a>
             <a href="tel:+919740277002">+91 97402 77002</a>
             <div className="socials" aria-label="Social links">
               <a href="#" aria-label="Instagram"><InstagramIcon /></a>

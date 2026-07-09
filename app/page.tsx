@@ -639,7 +639,8 @@ export default async function Home() {
         <div className="hero-gradient" />
         <header className="site-header">
           <a className="logo" href="/" aria-label="CBF Dwarka home">
-            <Image src="/assets/logo-figma.png" alt="CBF Dwarka" width={97} height={130} priority />
+            <Image src="/assets/logo-mark.svg" alt="" width={42} height={64} priority />
+            <span className="brand-name"><strong>CBF</strong> Dwarka</span>
           </a>
           <nav className="nav" aria-label="Primary navigation">
             <a className="active" href="/">Home</a>
@@ -765,7 +766,7 @@ export default async function Home() {
           </div>
           <div className="footer-contact">
             <h3>Contact Us</h3>
-            <a href="mailto:enquiry@cbfdwarka.com">enquiry@cbfdwarka.com</a>
+            <a href="mailto:cbfdwarka2021@gmail.com">cbfdwarka2021@gmail.com</a>
             <a href="tel:+919740277002">+91 97402 77002</a>
             <div className="socials" aria-label="Social links">
               <a href="#" aria-label="Instagram"><InstagramIcon /></a>

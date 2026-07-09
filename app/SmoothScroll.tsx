@@ -12,6 +12,25 @@ export function SmoothScroll() {
       return;
     }
 
+    const root = document.documentElement;
+    const updateScrollState = () => {
+      root.classList.toggle("is-scrolled", window.scrollY > 24);
+    };
+
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", updateScrollState);
+      root.classList.remove("is-scrolled");
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (pathname?.startsWith("/studio")) {
+      return;
+    }
+
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     if (motionQuery.matches) {

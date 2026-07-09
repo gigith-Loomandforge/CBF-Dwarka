@@ -96,43 +96,64 @@ main {
 }
 
 .site-header {
-  position: relative;
-  z-index: 2;
-  width: var(--content);
-  height: 135px;
-  margin: 31px auto 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: clamp(48px, 15vw, 228px);
+  align-items: center;
+  width: 100%;
+  height: 90px;
+  margin: 0;
+  padding-inline: max(24px, calc((100vw - var(--content)) / 2));
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+  transition: height 220ms var(--ease-out), box-shadow 220ms ease;
+}
+
+.site-header::after {
+  content: none;
 }
 
 .logo {
-  position: absolute;
-  left: 47px;
-  top: 0;
-  display: inline-flex;
-  width: 94px;
-  min-height: 124px;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 16px;
+  width: auto;
+  min-height: 90px;
   align-items: center;
   justify-content: center;
-  transition: filter 180ms ease, opacity 180ms ease;
+  transition: filter 180ms ease, min-height 220ms var(--ease-out), width 220ms var(--ease-out);
 }
 
 .logo::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  left: -34px;
-  top: -24px;
-  width: 162px;
-  height: 184px;
-  background: #f5f5f0;
+  content: none;
 }
 
 .logo img {
   position: relative;
   z-index: 1;
   display: block;
-  width: 97px;
-  height: auto;
+  width: 42px;
+  height: 64px;
   object-fit: contain;
+  transition: width 220ms var(--ease-out), height 220ms var(--ease-out);
+}
+
+.brand-name {
+  color: var(--deep);
+  font-family: "Playfair Display", Instrument Serif, Georgia, serif;
+  font-size: 24px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.brand-name strong {
+  font-weight: 700;
 }
 
 .logo:hover {
@@ -140,19 +161,26 @@ main {
 }
 
 .nav {
-  position: absolute;
-  left: 222px;
-  top: 60px;
+  position: static;
+  z-index: 2;
   display: flex;
-  gap: 57px;
-  color: #fff;
-  font-size: 19px;
-  font-family: Inter, Arial, sans-serif;
+  justify-self: center;
+  gap: 40px;
+  color: var(--deep);
+  font-size: 15px;
+  font-family: Montserrat, Arial, sans-serif;
+  line-height: 1;
+  transition: color 180ms ease;
 }
 
 .nav a {
   position: relative;
   transition: color 180ms ease;
+}
+
+.nav .active {
+  color: var(--deep);
+  font-weight: 700;
 }
 
 .nav a::before,
@@ -186,23 +214,35 @@ main {
 }
 
 .nav .active::after {
-  content: "";
-  position: absolute;
-  left: 1px;
-  right: 4px;
-  top: 32px;
-  border-top: 4px solid var(--gold);
+  content: none;
 }
 
 .language {
-  position: absolute;
-  right: 0;
-  top: 57px;
-  width: 72px;
-  text-align: center;
-  color: #fff;
-  font-size: 19px;
+  position: static;
+  z-index: 2;
+  justify-self: end;
+  width: auto;
+  color: var(--deep);
+  font-family: Montserrat, Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
   transition: color 180ms ease;
+}
+
+@media (min-width: 901px) {
+  html.is-scrolled .site-header {
+    height: 72px;
+    box-shadow: 0 10px 24px rgba(12, 12, 13, 0.08);
+  }
+
+  html.is-scrolled .logo {
+    min-height: 72px;
+  }
+
+  html.is-scrolled .logo img {
+    width: 30px;
+    height: 46px;
+  }
 }
 
 .mobile-menu {
@@ -213,7 +253,7 @@ main {
   position: relative;
   z-index: 1;
   width: var(--content);
-  margin: 278px auto 0;
+  margin: 444px auto 0;
   color: #fff;
 }
 
@@ -932,50 +972,41 @@ p {
   }
 
   .site-header {
-    z-index: 3;
-    height: auto;
-    display: grid;
-    grid-template-columns: 84px 1fr auto;
-    margin-top: 20px;
+    height: 78px;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    padding-inline: max(24px, calc((100vw - var(--content)) / 2));
   }
 
   .logo {
-    position: relative;
-    left: auto;
-    top: auto;
-    width: 74px;
-    min-height: 88px;
+    width: auto;
+    min-height: 78px;
+    gap: 12px;
   }
 
-  .logo::before {
-    left: -24px;
-    top: -20px;
-    width: 132px;
-    height: 146px;
+  .brand-name {
+    font-size: 22px;
   }
 
   .logo img {
-    width: 74px;
-    height: auto;
+    width: 34px;
+    height: 52px;
   }
+
   .nav {
-    position: static;
     justify-self: end;
     gap: 16px;
-    padding-top: 32px;
+    padding-top: 0;
     font-size: 14px;
   }
 
   .language {
-    position: static;
-    width: auto;
-    text-align: left;
     display: none;
   }
 
   .hero-copy {
     z-index: 2;
-    margin-top: 130px;
+    margin-top: 238px;
     color: #fff;
   }
 
@@ -1100,32 +1131,28 @@ p {
   }
 
   .site-header {
-    width: var(--content);
-    z-index: 100;
-    grid-template-columns: 76px 1fr;
+    width: 100%;
+    height: 72px;
+    grid-template-columns: auto 1fr;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 0;
+    padding-inline: max(16px, calc((100vw - var(--content)) / 2));
   }
 
   .logo {
-    left: 0;
-    width: 116px;
-    min-height: 170px;
-  }
-
-  .logo::before {
-    left: 0;
-    top: -20px;
-    width: 116px;
-    height: 170px;
+    width: auto;
+    min-height: 72px;
+    gap: 10px;
   }
 
   .logo img {
-    width: 88px;
+    width: 30px;
+    height: 46px;
+  }
+
+  .brand-name {
+    font-size: 20px;
   }
 
   .nav {
@@ -1134,7 +1161,7 @@ p {
 
   .mobile-menu {
     position: fixed;
-    top: 20px;
+    top: 12px;
     right: calc((100vw - var(--content)) / 2);
     left: auto;
     display: block;
@@ -1383,28 +1410,24 @@ p {
 
 @media (max-width: 360px) {
   .site-header {
-    grid-template-columns: 62px 1fr;
-  }
-
-  .logo,
-  .logo img {
-    width: 78px;
+    height: 68px;
   }
 
   .logo {
-    width: 100px;
-    min-height: 150px;
+    min-height: 68px;
   }
 
-  .logo::before {
-    left: 0;
-    top: -16px;
-    width: 100px;
-    height: 150px;
+  .logo img {
+    width: 28px;
+    height: 42px;
+  }
+
+  .brand-name {
+    font-size: 18px;
   }
 
   .mobile-menu {
-    top: 16px;
+    top: 12px;
     right: calc((100vw - var(--content)) / 2);
     left: auto;
     padding-top: 0;
@@ -1438,10 +1461,11 @@ p {
 .about-page {
   background: #fff;
   color: var(--deep);
+  padding-top: 90px;
 }
 
 .about-page .site-header {
-  margin-top: 31px;
+  margin-top: 0;
 }
 
 .about-header {
@@ -1454,11 +1478,6 @@ p {
 
 .about-page .language {
   color: var(--deep);
-}
-
-.about-page .nav .active::after {
-  left: 0;
-  right: 6px;
 }
 
 .about-history,
@@ -1483,7 +1502,7 @@ p {
 .about-scripture,
 .about-section-header,
 .about-value-card,
-.about-accordion-item {
+.about-belief-card {
   animation: soft-enter 520ms var(--ease-out) both;
 }
 
@@ -1588,6 +1607,7 @@ p {
 .about-centered {
   align-items: center;
   max-width: 800px;
+  margin-inline: auto;
   text-align: center;
 }
 
@@ -1657,84 +1677,67 @@ p {
   font-size: 18px;
 }
 
-.about-accordion {
+.about-belief-grid {
   display: grid;
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
   margin-top: 60px;
 }
 
-.about-accordion-item {
+.about-belief-card {
   position: relative;
+  display: flex;
+  min-height: 194px;
+  flex-direction: column;
+  gap: 12px;
   overflow: hidden;
+  padding: 24px;
   color: #fff;
-  background: var(--deep);
-  border-radius: 8px;
-  transition: transform 180ms var(--ease-out), box-shadow 180ms ease;
+  background: #252525;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  transition: transform 180ms var(--ease-out), box-shadow 180ms ease, border-color 180ms ease;
 }
 
-.about-accordion-item:hover,
-.about-accordion-item:focus-within {
+.about-belief-card:hover,
+.about-belief-card:focus-within {
   transform: translateY(-2px);
-  box-shadow: 0 16px 32px rgba(17, 24, 39, 0.14);
+  border-color: rgba(201, 168, 76, 0.45);
+  box-shadow: 0 18px 36px rgba(17, 24, 39, 0.16);
 }
 
-.about-accordion-item[open]::before {
+.about-belief-card::before {
   content: "";
   position: absolute;
-  inset: 0 auto 0 0;
+  inset: -1px auto -1px -1px;
   width: 4px;
-  background: #c9a14a;
+  background: #c9a84c;
 }
 
-.about-accordion-item summary {
-  display: grid;
-  grid-template-columns: 60px 1fr 24px;
-  gap: 24px;
-  align-items: center;
-  min-height: 100px;
-  padding: 32px;
-  cursor: pointer;
-  list-style: none;
-}
-
-.about-accordion-item summary::-webkit-details-marker {
-  display: none;
-}
-
-.about-accordion-number,
-.about-accordion-title {
+.about-belief-number,
+.about-belief-card h3,
+.about-belief-card p {
   font-family: Instrument Serif, Playfair Display, Georgia, serif;
-  font-size: 28px;
-  line-height: 1.3;
 }
 
-.about-accordion-number {
-  color: #c9a14a;
+.about-belief-number {
+  color: #c9a84c;
+  font-size: 20px;
+  line-height: 1.2;
 }
 
-.about-accordion-icon {
-  width: 12px;
-  height: 12px;
-  justify-self: center;
-  border-right: 2px solid #c9a14a;
-  border-bottom: 2px solid #c9a14a;
-  transform: rotate(45deg);
-  transition: transform 180ms var(--ease-out);
-}
-
-.about-accordion-item[open] .about-accordion-icon {
-  transform: translateY(3px) rotate(225deg);
-}
-
-.about-accordion-body {
-  padding: 0 32px 32px;
-}
-
-.about-accordion-body p {
+.about-belief-card h3 {
   margin: 0;
-  color: #d1d5db;
-  font-family: Instrument Serif, Playfair Display, Georgia, serif;
-  font-size: 18px;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.about-belief-card p {
+  margin: 0;
+  color: #aaa;
+  font-size: 15px;
   line-height: 1.6;
 }
 
@@ -1746,6 +1749,10 @@ p {
 }
 
 @media (max-width: 900px) {
+  .about-page {
+    padding-top: 78px;
+  }
+
   .about-page .nav {
     color: var(--deep);
   }
@@ -1760,6 +1767,10 @@ p {
   }
 
   .about-vision-grid,
+  .about-belief-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .about-value-grid {
     grid-template-columns: 1fr;
   }
@@ -1770,6 +1781,10 @@ p {
 }
 
 @media (max-width: 640px) {
+  .about-page {
+    padding-top: 72px;
+  }
+
   .about-history,
   .about-vision-inner,
   .about-values,
@@ -1805,28 +1820,29 @@ p {
   }
 
   .about-value-grid,
-  .about-accordion {
+  .about-belief-grid {
     margin-top: 40px;
+  }
+
+  .about-belief-grid {
+    grid-template-columns: 1fr;
   }
 
   .about-value-card {
     padding: 32px;
   }
 
-  .about-accordion-item summary {
-    grid-template-columns: 42px 1fr 20px;
-    gap: 14px;
-    min-height: 84px;
+  .about-belief-card {
+    min-height: 0;
     padding: 24px;
   }
 
-  .about-accordion-number,
-  .about-accordion-title {
+  .about-belief-card h3 {
     font-size: 23px;
   }
 
-  .about-accordion-body {
-    padding: 0 24px 28px;
+  .about-belief-card p {
+    font-size: 15px;
   }
 }
 
