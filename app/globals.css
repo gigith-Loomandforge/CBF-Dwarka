@@ -11,6 +11,8 @@
   --paper: #ffffff;
   --hero-wash: #c7ccd2;
   --content: 1128px;
+  --focus-ring: rgba(225, 164, 59, 0.72);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * {
@@ -19,6 +21,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 28px;
 }
 
 body {
@@ -33,9 +36,29 @@ a {
   text-decoration: none;
 }
 
+a,
+summary {
+  -webkit-tap-highlight-color: rgba(225, 164, 59, 0.18);
+}
+
+a:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 5px;
+  border-radius: 4px;
+}
+
 main {
   position: relative;
   overflow: hidden;
+}
+
+.section-anchor {
+  position: absolute;
+  top: -28px;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
 }
 
 .sunday-bg {
@@ -89,16 +112,17 @@ main {
   min-height: 124px;
   align-items: center;
   justify-content: center;
+  transition: transform 180ms var(--ease-out);
 }
 
 .logo::before {
   content: "";
   position: absolute;
   z-index: -1;
-  left: -47px;
-  top: -31px;
-  width: 185px;
-  height: 205px;
+  left: -34px;
+  top: -24px;
+  width: 162px;
+  height: 184px;
   background: #f5f5f0;
 }
 
@@ -109,6 +133,10 @@ main {
   width: 97px;
   height: auto;
   object-fit: contain;
+}
+
+.logo:hover {
+  transform: translateY(-2px);
 }
 
 .nav {
@@ -124,6 +152,37 @@ main {
 
 .nav a {
   position: relative;
+  transition: color 180ms ease;
+}
+
+.nav a::before,
+.language::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  height: 2px;
+  background: var(--gold);
+  opacity: 0;
+  transform: scaleX(0.4);
+  transform-origin: left center;
+  transition: opacity 180ms ease, transform 180ms var(--ease-out);
+}
+
+.nav a:hover,
+.nav a:focus-visible,
+.language:hover,
+.language:focus-visible {
+  color: var(--gold);
+}
+
+.nav a:hover::before,
+.nav a:focus-visible::before,
+.language:hover::before,
+.language:focus-visible::before {
+  opacity: 1;
+  transform: scaleX(1);
 }
 
 .nav .active::after {
@@ -143,6 +202,7 @@ main {
   text-align: center;
   color: #fff;
   font-size: 19px;
+  transition: color 180ms ease;
 }
 
 .mobile-menu {
@@ -188,6 +248,39 @@ p {
   font-weight: 400;
 }
 
+.hero-copy,
+.feature-card,
+.visit-copy,
+.location-card,
+.event-card,
+.sermon-card {
+  animation: soft-enter 520ms var(--ease-out) both;
+}
+
+.feature-card:nth-child(2),
+.event-card:nth-child(2),
+.sermon-card:nth-child(2) {
+  animation-delay: 70ms;
+}
+
+.feature-card:nth-child(3),
+.event-card:nth-child(3),
+.sermon-card:nth-child(3) {
+  animation-delay: 120ms;
+}
+
+@keyframes soft-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .arrow-icon {
   width: 33px;
   height: 16px;
@@ -219,6 +312,14 @@ p {
   border-radius: 4px;
   box-shadow: 0 16px 16px rgba(12, 12, 13, 0.4);
   outline: 1px solid rgba(212, 160, 23, 0.15);
+  transition: transform 220ms var(--ease-out), box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.feature-card:hover,
+.feature-card:focus-within {
+  transform: translateY(-4px);
+  border-color: var(--gold);
+  box-shadow: 0 22px 28px rgba(12, 12, 13, 0.42);
 }
 
 .card-icon {
@@ -251,6 +352,27 @@ p {
   color: var(--gold-2);
   font-weight: 600;
   font-size: 14px;
+  transition: color 180ms ease;
+}
+
+.feature-card > a .small-arrow,
+.directions .up-right,
+.watch-all .arrow-icon {
+  transition: transform 180ms var(--ease-out);
+}
+
+.feature-card > a:hover,
+.feature-card > a:focus-visible {
+  color: var(--gold-soft);
+}
+
+.feature-card > a:hover .small-arrow,
+.feature-card > a:focus-visible .small-arrow,
+.directions:hover .up-right,
+.directions:focus-visible .up-right,
+.watch-all:hover .arrow-icon,
+.watch-all:focus-visible .arrow-icon {
+  transform: translateX(3px);
 }
 
 .small-arrow {
@@ -383,11 +505,27 @@ p {
   color: #111;
   font-family: Montserrat, Arial, sans-serif;
   font-weight: 700;
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms var(--ease-out), box-shadow 180ms ease;
 }
 
 .directions {
   padding: 12px 18px;
   font-size: 16px;
+}
+
+.directions:hover,
+.directions:focus-visible,
+.watch-all:hover,
+.watch-all:focus-visible {
+  background: #f0bd62;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(116, 75, 10, 0.18);
+}
+
+.directions:active,
+.watch-all:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .up-right {
@@ -477,6 +615,14 @@ p {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: white;
+  transition: transform 200ms var(--ease-out), box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.event-card:hover,
+.event-card:focus-within {
+  transform: translateY(-3px);
+  border-color: rgba(225, 164, 59, 0.42);
+  box-shadow: 0 18px 35px rgba(17, 24, 39, 0.09);
 }
 
 .event-card::before {
@@ -524,6 +670,14 @@ p {
   font-size: 14px;
   font-weight: 600;
   text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 180ms ease, text-decoration-color 180ms ease;
+}
+
+.event-card a:hover,
+.event-card a:focus-visible {
+  color: #9f6a11;
+  text-decoration-color: currentColor;
 }
 
 .sermons {
@@ -559,11 +713,17 @@ p {
 .sermon-card {
   display: block;
   border-radius: 3px;
+  transition: transform 200ms var(--ease-out);
 }
 
 .sermon-card:focus-visible {
   outline: 3px solid rgba(225, 164, 59, 0.55);
   outline-offset: 6px;
+}
+
+.sermon-card:hover,
+.sermon-card:focus-visible {
+  transform: translateY(-3px);
 }
 
 .sermon-card img {
@@ -612,6 +772,7 @@ p {
   color: var(--deep);
   font-size: 16px;
   font-weight: 600;
+  transition: color 180ms ease;
 }
 
 .sermon-card p {
@@ -692,6 +853,13 @@ p {
   display: grid;
   place-items: center;
   color: white;
+  transition: color 180ms ease, transform 180ms var(--ease-out);
+}
+
+.socials a:hover,
+.socials a:focus-visible {
+  color: var(--gold);
+  transform: translateY(-2px);
 }
 
 .socials svg {
@@ -720,6 +888,13 @@ p {
 .footer-bottom a {
   text-decoration: underline;
   font-weight: 700;
+  text-underline-offset: 3px;
+  transition: color 180ms ease;
+}
+
+.footer a:hover,
+.footer a:focus-visible {
+  color: var(--gold);
 }
 
 .footer-bottom nav {
@@ -985,6 +1160,19 @@ p {
     backdrop-filter: blur(12px);
     box-shadow: 0 10px 28px rgba(12, 12, 13, 0.12);
     list-style: none;
+    transition: border-color 180ms ease, background-color 180ms ease, transform 180ms var(--ease-out), box-shadow 180ms ease;
+  }
+
+  .mobile-menu-button:hover,
+  .mobile-menu-button:focus-visible,
+  .mobile-menu[open] .mobile-menu-button {
+    border-color: rgba(225, 164, 59, 0.78);
+    background: #fff;
+    box-shadow: 0 14px 32px rgba(12, 12, 13, 0.18);
+  }
+
+  .mobile-menu-button:active {
+    transform: scale(0.97);
   }
 
   .mobile-menu-button::-webkit-details-marker {
@@ -1047,12 +1235,14 @@ p {
     font-family: Montserrat, Arial, sans-serif;
     font-size: 14px;
     font-weight: 600;
+    transition: color 160ms ease, background-color 160ms ease, transform 160ms var(--ease-out);
   }
 
   .mobile-menu-panel a:hover,
   .mobile-menu-panel a:focus-visible {
     color: var(--gold);
     background: rgba(225, 164, 59, 0.1);
+    transform: translateX(2px);
   }
 
   .hero-copy {
@@ -1242,5 +1432,20 @@ p {
   .button {
     min-height: 48px;
     padding: 13px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
   }
 }

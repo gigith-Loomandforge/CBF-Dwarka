@@ -638,15 +638,15 @@ export default async function Home() {
         <Image src="/assets/hero.png?v=20260708" alt="" fill priority sizes="100vw" className="hero-image" unoptimized />
         <div className="hero-gradient" />
         <header className="site-header">
-          <a className="logo" href="#" aria-label="CBF Dwarka home">
+          <a className="logo" href="/" aria-label="CBF Dwarka home">
             <Image src="/assets/logo-figma.png" alt="CBF Dwarka" width={97} height={130} priority />
           </a>
           <nav className="nav" aria-label="Primary navigation">
-            <a className="active" href="#">Home</a>
-            <a href="#about">About</a>
-            <a href="#connect">Connect</a>
-            <a href="#sermons">Sermons</a>
-            <a href="#contact">Contact</a>
+            <a className="active" href="/">Home</a>
+            <a href="/#about">About</a>
+            <a href="/#connect">Connect</a>
+            <a href="/#sermons">Sermons</a>
+            <a href="/#contact">Contact</a>
           </nav>
           <a className="language" href="/hi">हिन्दी</a>
           <MobileMenu />
@@ -687,6 +687,7 @@ export default async function Home() {
       </section>
 
       <section className="visit" id="visit" aria-labelledby="visit-title">
+        <span id="connect" className="section-anchor" aria-hidden="true" />
         <div className="content visit-layout">
           <div className="visit-copy">
             <span className="date-badge">Sun • 10:30 AM</span>
@@ -696,7 +697,7 @@ export default async function Home() {
             <p className="visit-body">
               Come as you are and encounter the living God. Spirit-filled worship, Gospel-centered preaching, and a community that welcomes all.
             </p>
-            <a className="directions" href="https://maps.google.com/?q=Mount+Carmel+School+Sector+22+Dwarka+Delhi+110077">
+            <a className="directions" href="https://maps.app.goo.gl/Jw4P6KEhqbsKPySj7">
               Get Directions <UpRight />
             </a>
           </div>
