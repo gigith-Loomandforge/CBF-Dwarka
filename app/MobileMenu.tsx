@@ -4,10 +4,10 @@ import type { MouseEvent } from "react";
 
 const navItems = [
   { href: "/", label: "Home" },
-  { href: "/#about", label: "About" },
+  { href: "/about", label: "About" },
   { href: "/#connect", label: "Connect" },
   { href: "/#sermons", label: "Sermons" },
-  { href: "/#contact", label: "Contact" },
+  { href: "#contact", label: "Contact" },
   { href: "/hi", label: "हिन्दी" },
 ];
 

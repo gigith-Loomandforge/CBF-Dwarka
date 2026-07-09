@@ -643,7 +643,7 @@ export default async function Home() {
           </a>
           <nav className="nav" aria-label="Primary navigation">
             <a className="active" href="/">Home</a>
-            <a href="/#about">About</a>
+            <a href="/about">About</a>
             <a href="/#connect">Connect</a>
             <a href="/#sermons">Sermons</a>
             <a href="/#contact">Contact</a>
@@ -680,7 +680,7 @@ export default async function Home() {
                   <p>{card.body}</p>
                 )}
               </div>
-              <a href={card.title === "Upcoming Events" ? "#events" : "#visit"}>{card.action} <SmallArrow /></a>
+              <a href={card.title === "Upcoming Events" ? "#events" : card.title === "What We Believe" ? "/about#beliefs" : "#visit"}>{card.action} <SmallArrow /></a>
             </article>
           ))}
         </div>
