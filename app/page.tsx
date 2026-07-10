@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { MobileMenu } from "./MobileMenu";
+import { SiteHeader } from "./SiteHeader";
 import { client } from "../sanity/lib/client";
 import { homepageQuery } from "../sanity/lib/queries";
 
@@ -80,6 +80,8 @@ const churchAddress = "Sector 22, Dwarka, Delhi, 110077";
 const youtubeChannelUrl = "https://www.youtube.com/@cbfdwarka";
 const youtubeHandle = "@cbfdwarka";
 const maxRecentYouTubeVideos = 3;
+const maxYouTubeCandidates = 12;
+const maxShortVideoDurationSeconds = 180;
 const eventTimeZone = "Asia/Kolkata";
 const maxHomepageEvents = 3;
 
@@ -236,6 +238,9 @@ type YouTubeVideosResponse = {
       description?: string;
       thumbnails?: YouTubeThumbnails;
     };
+    contentDetails?: {
+      duration?: string;
+    };
     statistics?: {
       viewCount?: string;
     };
@@ -275,6 +280,26 @@ const getBestThumbnail = (thumbnails?: YouTubeThumbnails) => {
   }
 
   return thumbnails.maxres?.url || thumbnails.standard?.url || thumbnails.high?.url || thumbnails.medium?.url || thumbnails.default?.url || "";
+};
+
+const getYouTubeDurationSeconds = (duration?: string) => {
+  if (!duration) {
+    return 0;
+  }
+
+  const match = duration.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
+
+  if (!match) {
+    return 0;
+  }
+
+  const [, hours = "0", minutes = "0", seconds = "0"] = match;
+
+  return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
+};
+
+const isLongFormYouTubeVideo = (duration?: string) => {
+  return getYouTubeDurationSeconds(duration) > maxShortVideoDurationSeconds;
 };
 
 const getVideoDescription = (description = "") => {
@@ -577,7 +602,7 @@ const getFeaturedSermons = async (): Promise<Sermon[]> => {
       {
         playlistId: uploadsPlaylistId,
         part: "contentDetails",
-        maxResults: String(maxRecentYouTubeVideos),
+        maxResults: String(maxYouTubeCandidates),
       },
       apiKey,
     );
@@ -586,7 +611,7 @@ const getFeaturedSermons = async (): Promise<Sermon[]> => {
       playlistItems.items
         ?.map((item) => item.contentDetails?.videoId)
         .filter((videoId): videoId is string => Boolean(videoId))
-        .slice(0, maxRecentYouTubeVideos) || [];
+        .slice(0, maxYouTubeCandidates) || [];
 
     const videos: NonNullable<YouTubeVideosResponse["items"]> = [];
 
@@ -595,7 +620,7 @@ const getFeaturedSermons = async (): Promise<Sermon[]> => {
         "videos",
         {
           id: videoIds.slice(index, index + 50).join(","),
-          part: "snippet",
+          part: "snippet,contentDetails",
         },
         apiKey,
       );
@@ -604,10 +629,10 @@ const getFeaturedSermons = async (): Promise<Sermon[]> => {
     }
 
     const recentVideos = videos
-      .filter((video) => video.id && video.snippet?.title && getBestThumbnail(video.snippet.thumbnails))
+      .filter((video) => video.id && video.snippet?.title && getBestThumbnail(video.snippet.thumbnails) && isLongFormYouTubeVideo(video.contentDetails?.duration))
       .slice(0, maxRecentYouTubeVideos);
 
-    if (recentVideos.length < maxRecentYouTubeVideos) {
+    if (!recentVideos.length) {
       return fallbackSermons;
     }
 
@@ -637,21 +662,7 @@ export default async function Home() {
       <section className="hero" aria-label="CBF Dwarka introduction">
         <Image src="/assets/hero.png?v=20260708" alt="" fill priority sizes="100vw" className="hero-image" unoptimized />
         <div className="hero-gradient" />
-        <header className="site-header">
-          <a className="logo" href="/" aria-label="CBF Dwarka home">
-            <Image src="/assets/logo-mark.svg" alt="" width={42} height={64} priority />
-            <span className="brand-name"><strong>CBF</strong> Dwarka</span>
-          </a>
-          <nav className="nav" aria-label="Primary navigation">
-            <a className="active" href="/">Home</a>
-            <a href="/about">About</a>
-            <a href="/#connect">Connect</a>
-            <a href="/#sermons">Sermons</a>
-            <a href="/#contact">Contact</a>
-          </nav>
-          <a className="language" href="/hi">हिन्दी</a>
-          <MobileMenu />
-        </header>
+        <SiteHeader />
         <div className="hero-copy">
           <p>
             <span>Welcome to</span>

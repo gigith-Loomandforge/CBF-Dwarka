@@ -122,7 +122,6 @@ main {
   position: relative;
   z-index: 2;
   display: flex;
-  gap: 16px;
   width: auto;
   min-height: 90px;
   align-items: center;
@@ -138,8 +137,8 @@ main {
   position: relative;
   z-index: 1;
   display: block;
-  width: 42px;
-  height: 64px;
+  width: 66px;
+  height: auto;
   object-fit: contain;
   transition: width 220ms var(--ease-out), height 220ms var(--ease-out);
 }
@@ -240,8 +239,8 @@ main {
   }
 
   html.is-scrolled .logo img {
-    width: 30px;
-    height: 46px;
+    width: 51px;
+    height: auto;
   }
 }
 
@@ -253,19 +252,23 @@ main {
   position: relative;
   z-index: 1;
   width: var(--content);
-  margin: 444px auto 0;
+  margin: 320px auto 0;
   color: #fff;
 }
 
 .hero-copy > p {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35em;
+  display: block;
+  max-width: 908px;
   margin: 0 0 16px;
   font-family: Montserrat, Arial, sans-serif;
-  font-size: 18px;
+  font-size: 68px;
   font-weight: 400;
+  line-height: 1.22;
   letter-spacing: 0;
+}
+
+.hero-copy > p span {
+  display: block;
 }
 
 .hero-copy > p span:last-child {
@@ -280,11 +283,11 @@ p {
 }
 
 .hero-copy h1 {
-  max-width: 835px;
+  max-width: 380px;
   margin: 0;
   font-family: Playfair Display, Georgia, serif;
-  font-size: 68px;
-  line-height: 84px;
+  font-size: 18px;
+  line-height: 1.55;
   font-weight: 400;
 }
 
@@ -371,7 +374,7 @@ p {
 
 .feature-card h2 {
   margin-bottom: 14px;
-  font-family: Instrument Serif, Georgia, serif;
+  font-family: Playfair Display, Georgia, serif;
   font-size: 28px;
   font-weight: 400;
   line-height: 1.2;
@@ -497,7 +500,7 @@ p {
 
 .visit h2,
 .section-header h2 {
-  font-family: Instrument Serif, Playfair Display, Georgia, serif;
+  font-family: Playfair Display, Georgia, serif;
   font-weight: 400;
   color: var(--deep);
 }
@@ -981,7 +984,6 @@ p {
   .logo {
     width: auto;
     min-height: 78px;
-    gap: 12px;
   }
 
   .brand-name {
@@ -989,19 +991,129 @@ p {
   }
 
   .logo img {
-    width: 34px;
-    height: 52px;
+    width: 54px;
+    height: auto;
   }
 
   .nav {
-    justify-self: end;
-    gap: 16px;
-    padding-top: 0;
-    font-size: 14px;
+    display: none;
   }
 
   .language {
     display: none;
+  }
+
+  .mobile-menu {
+    position: fixed;
+    top: 15px;
+    right: max(24px, calc((100vw - var(--content)) / 2));
+    left: auto;
+    display: block;
+    justify-self: end;
+    margin-left: auto;
+    padding-top: 0;
+    z-index: 120;
+  }
+
+  .mobile-menu-button {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 1px solid rgba(225, 164, 59, 0.5);
+    border-radius: 999px;
+    background: rgba(245, 245, 240, 0.96);
+    color: var(--deep);
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 28px rgba(12, 12, 13, 0.12);
+    list-style: none;
+    transition: border-color 180ms ease, background-color 180ms ease, transform 180ms var(--ease-out), box-shadow 180ms ease;
+  }
+
+  .mobile-menu-button:hover,
+  .mobile-menu-button:focus-visible,
+  .mobile-menu[open] .mobile-menu-button {
+    border-color: rgba(225, 164, 59, 0.78);
+    background: #fff;
+    box-shadow: 0 14px 32px rgba(12, 12, 13, 0.18);
+  }
+
+  .mobile-menu-button:active {
+    transform: scale(0.97);
+  }
+
+  .mobile-menu-button::-webkit-details-marker {
+    display: none;
+  }
+
+  .mobile-menu-button span {
+    width: 18px;
+    height: 2px;
+    display: block;
+    border-radius: 999px;
+    background: currentColor;
+    transition: transform 160ms ease, opacity 160ms ease;
+  }
+
+  .mobile-menu[open] .mobile-menu-button span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .mobile-menu[open] .mobile-menu-button span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .mobile-menu[open] .mobile-menu-button span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .mobile-menu-panel {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    width: min(264px, calc(100vw - 32px));
+    display: grid;
+    gap: 2px;
+    padding: 10px;
+    border: 1px solid rgba(225, 164, 59, 0.24);
+    border-radius: 8px;
+    background: rgba(27, 27, 27, 0.96);
+    box-shadow: 0 22px 44px rgba(12, 12, 13, 0.28);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 130;
+    transform: translateY(-8px);
+    transition: opacity 160ms ease, transform 160ms ease;
+  }
+
+  .mobile-menu[open] .mobile-menu-panel {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .mobile-menu-panel a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 5px;
+    color: #f5f5f0;
+    font-family: Montserrat, Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    transition: color 160ms ease, background-color 160ms ease, transform 160ms var(--ease-out);
+  }
+
+  .mobile-menu-panel a:hover,
+  .mobile-menu-panel a:focus-visible,
+  .mobile-menu-panel a.active {
+    color: var(--gold);
+    background: rgba(225, 164, 59, 0.1);
   }
 
   .hero-copy {
@@ -1010,10 +1122,16 @@ p {
     color: #fff;
   }
 
-  .hero-copy h1 {
-    max-width: 560px;
+  .hero-copy > p {
+    max-width: 640px;
     font-size: 52px;
-    line-height: 60px;
+    line-height: 1.15;
+  }
+
+  .hero-copy h1 {
+    max-width: 360px;
+    font-size: 18px;
+    line-height: 1.55;
   }
 
   .feature-wrap {
@@ -1143,12 +1261,11 @@ p {
   .logo {
     width: auto;
     min-height: 72px;
-    gap: 10px;
   }
 
   .logo img {
-    width: 30px;
-    height: 46px;
+    width: 47px;
+    height: auto;
   }
 
   .brand-name {
@@ -1278,8 +1395,9 @@ p {
 
   .hero-copy > p {
     display: block;
-    font-size: 14px;
-    line-height: 1.5;
+    max-width: 350px;
+    font-size: 38px;
+    line-height: 1.16;
   }
 
   .hero-copy > p span {
@@ -1287,9 +1405,9 @@ p {
   }
 
   .hero-copy h1 {
-    max-width: 350px;
-    font-size: 42px;
-    line-height: 49px;
+    max-width: 300px;
+    font-size: 17px;
+    line-height: 1.5;
   }
 
   .feature-wrap {
@@ -1418,8 +1536,8 @@ p {
   }
 
   .logo img {
-    width: 28px;
-    height: 42px;
+    width: 42px;
+    height: auto;
   }
 
   .brand-name {
@@ -1444,8 +1562,8 @@ p {
 
   .hero-copy h1 {
     max-width: 288px;
-    font-size: 36px;
-    line-height: 41px;
+    font-size: 16px;
+    line-height: 1.5;
   }
 
   .hero-actions {
@@ -1466,10 +1584,6 @@ p {
 
 .about-page .site-header {
   margin-top: 0;
-}
-
-.about-header {
-  height: 135px;
 }
 
 .about-page .nav {
@@ -1535,15 +1649,31 @@ p {
 }
 
 .about-image-placeholder {
+  position: relative;
   display: grid;
   min-height: 566px;
   place-items: center;
+  overflow: hidden;
   background: #d9d9d9;
   color: #000;
   font-family: Instrument Serif, Playfair Display, Georgia, serif;
   font-size: 28px;
   line-height: 1.3;
   text-align: center;
+}
+
+.about-image-placeholder::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(27, 27, 27, 0.02), rgba(27, 27, 27, 0.18));
+  pointer-events: none;
+}
+
+.about-history-image {
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.04);
 }
 
 .about-vision {

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { MobileMenu } from "../MobileMenu";
+import { SiteHeader } from "../SiteHeader";
 
 export const metadata: Metadata = {
   title: "About CBF Dwarka | Christian Believers Fellowship",
@@ -136,21 +136,7 @@ const beliefItems = [
 export default function AboutPage() {
   return (
     <main className="about-page">
-      <header className="site-header about-header">
-        <a className="logo about-logo" href="/" aria-label="CBF Dwarka home">
-          <Image src="/assets/logo-mark.svg" alt="" width={42} height={64} priority />
-          <span className="brand-name"><strong>CBF</strong> Dwarka</span>
-        </a>
-        <nav className="nav about-nav" aria-label="Primary navigation">
-          <a href="/">Home</a>
-          <a className="active" href="/about">About</a>
-          <a href="/#connect">Connect</a>
-          <a href="/#sermons">Sermons</a>
-          <a href="#contact">Contact</a>
-        </nav>
-        <a className="language about-language" href="/hi">हिन्दी</a>
-        <MobileMenu />
-      </header>
+      <SiteHeader />
 
       <section className="about-history" aria-labelledby="about-history-title">
         <div className="about-history-copy">
@@ -161,7 +147,7 @@ export default function AboutPage() {
           </p>
         </div>
         <div className="about-image-placeholder">
-          <span>Old Image<br />Placeholder</span>
+          <Image src="/assets/hero.png?v=20260708" alt="CBF Dwarka church family" fill sizes="(max-width: 900px) 100vw, 50vw" className="about-history-image" unoptimized />
         </div>
       </section>
 

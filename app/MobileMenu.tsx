@@ -1,17 +1,20 @@
 "use client";
 
 import type { MouseEvent } from "react";
+import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
+  { href: "/", label: "Home", path: "/" },
+  { href: "/about", label: "About", path: "/about" },
   { href: "/#connect", label: "Connect" },
   { href: "/#sermons", label: "Sermons" },
-  { href: "#contact", label: "Contact" },
   { href: "/hi", label: "हिन्दी" },
 ];
 
 export function MobileMenu() {
+  const pathname = usePathname();
+  const contactHref = pathname === "/" ? "/#contact" : "#contact";
+
   const closeMenu = (event: MouseEvent<HTMLAnchorElement>) => {
     event.currentTarget.closest("details")?.removeAttribute("open");
   };
@@ -24,11 +27,15 @@ export function MobileMenu() {
         <span />
       </summary>
       <nav id="mobile-navigation" className="mobile-menu-panel" aria-label="Mobile navigation">
-        {navItems.map((item) => (
-          <a key={item.label} href={item.href} onClick={closeMenu}>
-            {item.label}
-          </a>
-        ))}
+        {navItems.map((item) => {
+          const isActive = item.path === pathname;
+          return (
+            <a key={item.label} className={isActive ? "active" : undefined} href={item.href} aria-current={isActive ? "page" : undefined} onClick={closeMenu}>
+              {item.label}
+            </a>
+          );
+        })}
+        <a href={contactHref} onClick={closeMenu}>Contact</a>
       </nav>
     </details>
   );

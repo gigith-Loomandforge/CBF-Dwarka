@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { SmoothScroll } from "./SmoothScroll";
 
@@ -32,6 +33,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <Script id="scroll-state" strategy="beforeInteractive">
+          {`(() => {
+            const root = document.documentElement;
+            const update = () => root.classList.toggle("is-scrolled", window.scrollY > 24);
+            update();
+            window.addEventListener("scroll", update, { passive: true });
+          })();`}
+        </Script>
         <SmoothScroll />
         {children}
       </body>

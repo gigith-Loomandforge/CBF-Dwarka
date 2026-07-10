@@ -13,49 +13,47 @@ export function SmoothScroll() {
     }
 
     const root = document.documentElement;
+    let lastScrollY = -1;
     const updateScrollState = () => {
-      root.classList.toggle("is-scrolled", window.scrollY > 24);
+      const scrollY = window.scrollY;
+      if (scrollY === lastScrollY) {
+        return;
+      }
+      lastScrollY = scrollY;
+      root.classList.toggle("is-scrolled", scrollY > 24);
     };
 
     updateScrollState();
     window.addEventListener("scroll", updateScrollState, { passive: true });
 
-    return () => {
-      window.removeEventListener("scroll", updateScrollState);
-      root.classList.remove("is-scrolled");
-    };
-  }, [pathname]);
-
-  useEffect(() => {
-    if (pathname?.startsWith("/studio")) {
-      return;
-    }
-
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-    if (motionQuery.matches) {
-      return;
-    }
-
-    const lenis = new Lenis({
-      duration: 1,
-      easing: (t) => 1 - Math.pow(1 - t, 3),
-      smoothWheel: true,
-      syncTouch: false,
-    });
-
+    let lenis: Lenis | null = null;
     let frame = 0;
 
+    if (!motionQuery.matches) {
+      lenis = new Lenis({
+        duration: 1,
+        easing: (t) => 1 - Math.pow(1 - t, 3),
+        smoothWheel: true,
+        syncTouch: false,
+      });
+
+      lenis.on("scroll", updateScrollState);
+    }
+
     const raf = (time: number) => {
-      lenis.raf(time);
+      lenis?.raf(time);
+      updateScrollState();
       frame = requestAnimationFrame(raf);
     };
 
     frame = requestAnimationFrame(raf);
 
     return () => {
+      window.removeEventListener("scroll", updateScrollState);
       cancelAnimationFrame(frame);
-      lenis.destroy();
+      lenis?.destroy();
+      root.classList.remove("is-scrolled");
     };
   }, [pathname]);
 
