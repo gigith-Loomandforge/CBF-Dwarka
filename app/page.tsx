@@ -660,7 +660,7 @@ export default async function Home() {
   return (
     <main>
       <section className="hero" aria-label="CBF Dwarka introduction">
-        <Image src="/assets/hero.png?v=20260708" alt="" fill priority sizes="100vw" className="hero-image" unoptimized />
+        <Image src="/assets/hero.png?v=20260711" alt="" fill priority sizes="100vw" className="hero-image" unoptimized />
         <div className="hero-gradient" />
         <SiteHeader />
         <div className="hero-copy">
