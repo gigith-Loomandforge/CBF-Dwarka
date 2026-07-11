@@ -507,7 +507,7 @@ export default async function Home() {
                   <p>{card.body}</p>
                 )}
               </div>
-              <a href={card.title === "Upcoming Events" ? "#events" : card.title === "What We Believe" ? "/about#beliefs" : "#visit"}>{card.action} <SmallArrow /></a>
+              <a href={card.title === "Upcoming Events" ? "#events" : card.title === "What We Believe" ? "/about#beliefs" : "/connect"}>{card.action} <SmallArrow /></a>
             </article>
           ))}
         </div>

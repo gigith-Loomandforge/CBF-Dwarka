@@ -1108,6 +1108,292 @@ p {
   margin-top: 0;
 }
 
+.connect-page {
+  min-height: 100vh;
+  padding-top: 90px;
+  background: #fdfcfb;
+  color: #2d2926;
+}
+
+.connect-inner {
+  width: var(--content);
+  margin-inline: auto;
+}
+
+.connect-plan {
+  padding: 120px 0;
+  background: #f7f3f0;
+}
+
+.connect-plan-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 480px;
+  gap: 80px;
+  align-items: center;
+}
+
+.connect-plan-copy h1,
+.connect-section h2 {
+  margin: 0;
+  color: #2d2926;
+  font-family: Geist, Inter, Arial, sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+.connect-plan-copy p,
+.connect-section-header p {
+  max-width: 720px;
+  margin: 16px 0 0;
+  color: #6b645e;
+  font-family: Geist, Inter, Arial, sans-serif;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+.connect-visit-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 32px;
+  padding: 40px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(45, 41, 38, 0.06);
+}
+
+.connect-info-stack {
+  display: grid;
+  gap: 24px;
+  width: 100%;
+}
+
+.connect-info-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.connect-info-row:first-child {
+  align-items: center;
+}
+
+.connect-icon {
+  width: 24px;
+  height: 24px;
+  color: #a66e4e;
+}
+
+.connect-time-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.connect-info-row span {
+  display: block;
+  margin-bottom: 4px;
+  color: #6b645e;
+  font-family: Inter, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.connect-info-row strong {
+  display: block;
+  color: #2d2926;
+  font-family: Inter, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.connect-primary {
+  min-height: 53px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px;
+  border-radius: 8px;
+  background: #a66e4e;
+  color: #fff;
+  font-family: Geist, Inter, Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  transition: background-color 180ms ease, transform 180ms var(--ease-out), box-shadow 180ms ease;
+}
+
+.connect-primary:hover,
+.connect-primary:focus-visible {
+  background: #8f593d;
+  box-shadow: 0 14px 30px rgba(166, 110, 78, 0.22);
+  transform: translateY(-2px);
+}
+
+.connect-section {
+  padding: 120px 0;
+  background: #fdfcfb;
+}
+
+.connect-section-muted {
+  background: #f7f3f0;
+}
+
+.connect-gathering-grid,
+.connect-ministry-grid,
+.connect-annual-grid {
+  display: grid;
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.connect-gathering-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.connect-gathering-card {
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f7f3f0;
+  transition: transform 180ms var(--ease-out), box-shadow 180ms ease;
+}
+
+.connect-gathering-card:hover,
+.connect-gathering-card:focus-within {
+  box-shadow: 0 18px 42px rgba(45, 41, 38, 0.08);
+  transform: translateY(-3px);
+}
+
+.connect-gathering-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1.786 / 1;
+  object-fit: cover;
+  display: block;
+}
+
+.connect-gathering-card div {
+  padding: 32px;
+}
+
+.connect-gathering-card h3,
+.connect-ministry-card h3,
+.connect-annual-card h3 {
+  margin: 0;
+  color: #2d2926;
+  font-family: Geist, Inter, Arial, sans-serif;
+  font-weight: 700;
+}
+
+.connect-gathering-card h3 {
+  font-size: 24px;
+  line-height: 1.3;
+}
+
+.connect-gathering-card p {
+  margin: 16px 0 0;
+  color: #6b645e;
+  font-family: Geist, Inter, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.connect-ministry-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.connect-ministry-card {
+  min-height: 155px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 32px;
+  border: 1px solid #dbcbbf;
+  border-radius: 12px;
+  background: #fff;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms var(--ease-out);
+}
+
+.connect-ministry-card:hover,
+.connect-ministry-card:focus-within {
+  border-color: rgba(166, 110, 78, 0.58);
+  box-shadow: 0 16px 34px rgba(45, 41, 38, 0.06);
+  transform: translateY(-2px);
+}
+
+.connect-ministry-card h3 {
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.connect-ministry-card p {
+  margin: 8px 0 0;
+  color: #6b645e;
+  font-family: Geist, Inter, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.connect-ministry-card span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #a66e4e;
+  font-family: Geist, Inter, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.connect-annual-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.connect-annual-card {
+  min-width: 0;
+}
+
+.connect-annual-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  display: block;
+  border-radius: 8px;
+  transition: filter 180ms ease, transform 180ms var(--ease-out);
+}
+
+.connect-annual-card:hover img,
+.connect-annual-card:focus-within img {
+  filter: saturate(1.06) contrast(1.02);
+  transform: translateY(-2px);
+}
+
+.connect-annual-card h3 {
+  margin-top: 16px;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.connect-plan-copy,
+.connect-visit-card,
+.connect-gathering-card,
+.connect-ministry-card,
+.connect-annual-card {
+  animation: soft-enter 520ms var(--ease-out) both;
+}
+
+.connect-footer {
+  margin-top: 0;
+}
+
 .footer {
   min-height: 347px;
   padding: 53px 0 36px;
@@ -2542,6 +2828,46 @@ p {
 }
 
 @media (max-width: 900px) {
+  .connect-page {
+    padding-top: 78px;
+  }
+
+  .connect-plan,
+  .connect-section {
+    padding: 80px 0;
+  }
+
+  .connect-plan-layout {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .connect-plan-copy h1,
+  .connect-section h2 {
+    font-size: 42px;
+  }
+
+  .connect-plan-copy p,
+  .connect-section-header p {
+    font-size: 18px;
+  }
+
+  .connect-visit-card {
+    max-width: 560px;
+  }
+
+  .connect-gathering-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .connect-ministry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .connect-annual-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .sermon-page {
     padding-top: 78px;
   }
@@ -2608,6 +2934,70 @@ p {
 }
 
 @media (max-width: 640px) {
+  .connect-page {
+    padding-top: 72px;
+  }
+
+  .connect-plan,
+  .connect-section {
+    padding: 56px 0;
+  }
+
+  .connect-plan-layout {
+    gap: 28px;
+  }
+
+  .connect-plan-copy h1,
+  .connect-section h2 {
+    font-size: 34px;
+    line-height: 1.12;
+  }
+
+  .connect-plan-copy p,
+  .connect-section-header p {
+    font-size: 15px;
+  }
+
+  .connect-visit-card {
+    gap: 28px;
+    padding: 28px;
+    border-radius: 12px;
+  }
+
+  .connect-info-row strong {
+    font-size: 16px;
+  }
+
+  .connect-primary {
+    width: 100%;
+  }
+
+  .connect-gathering-grid,
+  .connect-ministry-grid,
+  .connect-annual-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 28px;
+  }
+
+  .connect-gathering-card div,
+  .connect-ministry-card {
+    padding: 24px;
+  }
+
+  .connect-gathering-card h3 {
+    font-size: 22px;
+  }
+
+  .connect-gathering-card p,
+  .connect-ministry-card p {
+    font-size: 14px;
+  }
+
+  .connect-annual-card h3 {
+    font-size: 17px;
+  }
+
   .sermon-page {
     padding-top: 72px;
   }
