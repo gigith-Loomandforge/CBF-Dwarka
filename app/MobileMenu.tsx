@@ -8,12 +8,12 @@ const navItems = [
   { href: "/about", label: "About", path: "/about" },
   { href: "/#connect", label: "Connect" },
   { href: "/#sermons", label: "Sermons" },
+  { href: "/contact", label: "Contact", path: "/contact" },
   { href: "/hi", label: "हिन्दी" },
 ];
 
 export function MobileMenu() {
   const pathname = usePathname();
-  const contactHref = pathname === "/" ? "/#contact" : "#contact";
 
   const closeMenu = (event: MouseEvent<HTMLAnchorElement>) => {
     event.currentTarget.closest("details")?.removeAttribute("open");
@@ -35,7 +35,6 @@ export function MobileMenu() {
             </a>
           );
         })}
-        <a href={contactHref} onClick={closeMenu}>Contact</a>
       </nav>
     </details>
   );

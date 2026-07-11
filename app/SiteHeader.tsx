@@ -9,11 +9,11 @@ const navItems = [
   { href: "/about", label: "About", path: "/about" },
   { href: "/#connect", label: "Connect" },
   { href: "/#sermons", label: "Sermons" },
+  { href: "/contact", label: "Contact", path: "/contact" },
 ];
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const contactHref = pathname === "/" ? "/#contact" : "#contact";
 
   return (
     <header className="site-header">
@@ -29,7 +29,6 @@ export function SiteHeader() {
             </a>
           );
         })}
-        <a href={contactHref}>Contact</a>
       </nav>
       <a className="language" href="/hi">हिन्दी</a>
       <MobileMenu />

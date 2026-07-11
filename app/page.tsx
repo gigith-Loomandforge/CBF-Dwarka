@@ -79,11 +79,13 @@ const FacebookIcon = () => (
 const churchAddress = "Sector 22, Dwarka, Delhi, 110077";
 const youtubeChannelUrl = "https://www.youtube.com/@cbfdwarka";
 const youtubeHandle = "@cbfdwarka";
+const youtubeChannelId = "UCTRZ9Q_bNa8ZgWeNE-2b6wA";
+const youtubeRssFeedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${youtubeChannelId}`;
 const maxRecentYouTubeVideos = 3;
-const maxYouTubeCandidates = 12;
+const maxYouTubeCandidates = 50;
 const maxShortVideoDurationSeconds = 180;
 const eventTimeZone = "Asia/Kolkata";
-const maxHomepageEvents = 3;
+const maxHomepageEvents = 50;
 
 const weekdayIndexes = {
   sunday: 0,
@@ -96,6 +98,16 @@ const weekdayIndexes = {
 } as const;
 
 type WeekdayKey = keyof typeof weekdayIndexes;
+
+const weekdayLabels: Record<WeekdayKey, { short: string; long: string }> = {
+  sunday: { short: "Sun", long: "Sunday" },
+  monday: { short: "Mon", long: "Monday" },
+  tuesday: { short: "Tue", long: "Tuesday" },
+  wednesday: { short: "Wed", long: "Wednesday" },
+  thursday: { short: "Thu", long: "Thursday" },
+  friday: { short: "Fri", long: "Friday" },
+  saturday: { short: "Sat", long: "Saturday" },
+};
 
 const featureCards = [
   {
@@ -302,6 +314,37 @@ const isLongFormYouTubeVideo = (duration?: string) => {
   return getYouTubeDurationSeconds(duration) > maxShortVideoDurationSeconds;
 };
 
+const decodeXmlText = (value = "") => {
+  const withoutCdata = value.replace(/^<!\[CDATA\[/, "").replace(/\]\]>$/, "");
+  const namedEntities: Record<string, string> = {
+    amp: "&",
+    apos: "'",
+    gt: ">",
+    lt: "<",
+    quot: '"',
+  };
+
+  return withoutCdata.replace(/&(#\d+|#x[\da-f]+|[a-z]+);/gi, (entity, code: string) => {
+    if (code[0] === "#") {
+      const isHex = code[1]?.toLowerCase() === "x";
+      const codePoint = Number.parseInt(code.slice(isHex ? 2 : 1), isHex ? 16 : 10);
+      return Number.isNaN(codePoint) ? entity : String.fromCodePoint(codePoint);
+    }
+
+    return namedEntities[code.toLowerCase()] || entity;
+  });
+};
+
+const getXmlText = (xml: string, tagName: string) => {
+  const match = xml.match(new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)</${tagName}>`, "i"));
+  return decodeXmlText(match?.[1]?.trim() || "");
+};
+
+const getXmlAttribute = (xml: string, tagName: string, attributeName: string) => {
+  const match = xml.match(new RegExp(`<${tagName}[^>]*\\s${attributeName}="([^"]*)"`, "i"));
+  return decodeXmlText(match?.[1]?.trim() || "");
+};
+
 const getVideoDescription = (description = "") => {
   const cleanDescription = description.replace(/\s+/g, " ").trim();
 
@@ -466,6 +509,10 @@ const timeLabelFormatter = new Intl.DateTimeFormat("en-US", {
 const formatTimeLabel = (date: Date) => timeLabelFormatter.format(date).replace(/\s/g, " ");
 
 const getEventDate = (event: ChurchEvent, now: Date) => {
+  if (event.recurrenceDay && event.recurrenceTime) {
+    return getNextWeeklyOccurrence(event, now);
+  }
+
   if (event.dateTime) {
     const date = new Date(event.dateTime);
 
@@ -481,20 +528,24 @@ const getEventDate = (event: ChurchEvent, now: Date) => {
 
 const prepareChurchEvent = (event: ChurchEvent, now: Date): ChurchEvent | null => {
   const eventDate = getEventDate(event, now);
+  const isRecurring = Boolean(event.recurrenceDay && event.recurrenceTime);
+  const recurrenceLabel = event.recurrenceDay ? weekdayLabels[event.recurrenceDay] : null;
 
   if (event.dateTime && !eventDate) {
     return null;
   }
 
-  const recurringDateLabel = event.recurrenceDay
-    ? `Every ${event.recurrenceDay.charAt(0).toUpperCase()}${event.recurrenceDay.slice(1)}`
-    : "";
+  const computedDateLabel = eventDate ? dateLabelFormatter.format(eventDate) : event.title;
+  const computedTimeLabel = eventDate ? formatTimeLabel(eventDate) : "";
+  const recurringDateLabel = recurrenceLabel ? `Every ${recurrenceLabel.long}` : "";
+  const recurringScheduleLabel = recurrenceLabel && computedTimeLabel ? `Every ${recurrenceLabel.short} - ${computedTimeLabel}` : "";
+  const oneTimeScheduleLabel = eventDate ? `${shortScheduleFormatter.format(eventDate)} - ${computedTimeLabel}` : "";
 
   return {
     ...event,
-    time: event.time || (eventDate ? `${shortScheduleFormatter.format(eventDate)} - ${formatTimeLabel(eventDate)}` : ""),
-    homepageDateLabel: event.homepageDateLabel || recurringDateLabel || (eventDate ? dateLabelFormatter.format(eventDate) : event.title),
-    homepageTimeLabel: event.homepageTimeLabel || (eventDate ? formatTimeLabel(eventDate) : ""),
+    time: isRecurring ? recurringScheduleLabel : oneTimeScheduleLabel || event.time,
+    homepageDateLabel: isRecurring ? recurringDateLabel : computedDateLabel,
+    homepageTimeLabel: computedTimeLabel || event.homepageTimeLabel,
     sortTimestamp: eventDate?.getTime() ?? Number.MAX_SAFE_INTEGER,
   };
 };
@@ -574,79 +625,138 @@ const youtubeApiFetch = async <T,>(path: string, params: Record<string, string>,
   return response.json() as Promise<T>;
 };
 
-const getFeaturedSermons = async (): Promise<Sermon[]> => {
-  const apiKey = process.env.YOUTUBE_API_KEY;
+const mapYouTubeVideosToSermons = (
+  videos: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    thumbnail: string;
+    href: string;
+  }>,
+) => {
+  return videos.slice(0, maxRecentYouTubeVideos).map((video, index) => ({
+    image: video.thumbnail,
+    number: String(index + 1).padStart(2, "0"),
+    kind: "Recent Video",
+    title: video.title,
+    body: getVideoDescription(video.description),
+    href: video.href,
+  }));
+};
 
-  if (!apiKey) {
-    return fallbackSermons;
+const getYouTubeApiSermons = async (apiKey: string): Promise<Sermon[]> => {
+  const channel = await youtubeApiFetch<YouTubeChannelListResponse>(
+    "channels",
+    {
+      forHandle: youtubeHandle,
+      part: "contentDetails",
+    },
+    apiKey,
+  );
+
+  const uploadsPlaylistId = channel.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+
+  if (!uploadsPlaylistId) {
+    return [];
+  }
+
+  const playlistItems = await youtubeApiFetch<YouTubePlaylistItemsResponse>(
+    "playlistItems",
+    {
+      playlistId: uploadsPlaylistId,
+      part: "contentDetails",
+      maxResults: String(maxYouTubeCandidates),
+    },
+    apiKey,
+  );
+
+  const videoIds =
+    playlistItems.items
+      ?.map((item) => item.contentDetails?.videoId)
+      .filter((videoId): videoId is string => Boolean(videoId))
+      .slice(0, maxYouTubeCandidates) || [];
+
+  const videos: NonNullable<YouTubeVideosResponse["items"]> = [];
+
+  for (let index = 0; index < videoIds.length; index += 50) {
+    const videoResponse = await youtubeApiFetch<YouTubeVideosResponse>(
+      "videos",
+      {
+        id: videoIds.slice(index, index + 50).join(","),
+        part: "snippet,contentDetails",
+      },
+      apiKey,
+    );
+
+    videos.push(...(videoResponse.items || []));
+  }
+
+  const recentVideos = videos
+    .filter((video) => video.id && video.snippet?.title && getBestThumbnail(video.snippet.thumbnails) && isLongFormYouTubeVideo(video.contentDetails?.duration))
+    .slice(0, maxRecentYouTubeVideos)
+    .map((video) => ({
+      id: video.id || "",
+      title: video.snippet?.title || "CBF Dwarka Sermon",
+      description: video.snippet?.description,
+      thumbnail: getBestThumbnail(video.snippet?.thumbnails),
+      href: `https://www.youtube.com/watch?v=${video.id}`,
+    }));
+
+  return mapYouTubeVideosToSermons(recentVideos);
+};
+
+const getYouTubeRssSermons = async (): Promise<Sermon[]> => {
+  const response = await fetch(youtubeRssFeedUrl, { next: { revalidate } });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const feed = await response.text();
+  const recentVideos = feed
+    .split(/<entry>/i)
+    .slice(1)
+    .map((entry) => {
+      const id = getXmlText(entry, "yt:videoId");
+      const title = getXmlText(entry, "title");
+      const href = getXmlAttribute(entry, "link", "href") || `https://www.youtube.com/watch?v=${id}`;
+      const description = getXmlText(entry, "media:description");
+      const thumbnail = getXmlAttribute(entry, "media:thumbnail", "url") || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+
+      return { id, title, href, description, thumbnail };
+    })
+    .filter((video) => video.id && video.title && video.thumbnail && !video.href.includes("/shorts/") && !/#shorts/i.test(video.description))
+    .slice(0, maxRecentYouTubeVideos);
+
+  return mapYouTubeVideosToSermons(recentVideos);
+};
+
+const getFeaturedSermons = async (): Promise<Sermon[]> => {
+  const apiKey = process.env.YOUTUBE_API_KEY?.trim().replace(/^["']|["']$/g, "");
+
+  if (apiKey?.startsWith("AIza")) {
+    try {
+      const apiSermons = await getYouTubeApiSermons(apiKey);
+
+      if (apiSermons.length) {
+        return apiSermons;
+      }
+    } catch {
+      // Fall through to the public RSS feed when the API key is missing, invalid, or quota-limited.
+    }
   }
 
   try {
-    const channel = await youtubeApiFetch<YouTubeChannelListResponse>(
-      "channels",
-      {
-        forHandle: youtubeHandle,
-        part: "contentDetails",
-      },
-      apiKey,
-    );
+    const rssSermons = await getYouTubeRssSermons();
 
-    const uploadsPlaylistId = channel.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
-
-    if (!uploadsPlaylistId) {
-      return fallbackSermons;
+    if (rssSermons.length) {
+      return rssSermons;
     }
-
-    const playlistItems = await youtubeApiFetch<YouTubePlaylistItemsResponse>(
-      "playlistItems",
-      {
-        playlistId: uploadsPlaylistId,
-        part: "contentDetails",
-        maxResults: String(maxYouTubeCandidates),
-      },
-      apiKey,
-    );
-
-    const videoIds =
-      playlistItems.items
-        ?.map((item) => item.contentDetails?.videoId)
-        .filter((videoId): videoId is string => Boolean(videoId))
-        .slice(0, maxYouTubeCandidates) || [];
-
-    const videos: NonNullable<YouTubeVideosResponse["items"]> = [];
-
-    for (let index = 0; index < videoIds.length; index += 50) {
-      const videoResponse = await youtubeApiFetch<YouTubeVideosResponse>(
-        "videos",
-        {
-          id: videoIds.slice(index, index + 50).join(","),
-          part: "snippet,contentDetails",
-        },
-        apiKey,
-      );
-
-      videos.push(...(videoResponse.items || []));
-    }
-
-    const recentVideos = videos
-      .filter((video) => video.id && video.snippet?.title && getBestThumbnail(video.snippet.thumbnails) && isLongFormYouTubeVideo(video.contentDetails?.duration))
-      .slice(0, maxRecentYouTubeVideos);
-
-    if (!recentVideos.length) {
-      return fallbackSermons;
-    }
-
-    return recentVideos.map((video, index) => ({
-      image: getBestThumbnail(video.snippet?.thumbnails),
-      number: String(index + 1).padStart(2, "0"),
-      kind: "Recent Video",
-      title: video.snippet?.title || "CBF Dwarka Sermon",
-      body: getVideoDescription(video.snippet?.description),
-      href: `https://www.youtube.com/watch?v=${video.id}`,
-    }));
   } catch {
-    return fallbackSermons;
+    // Static cards keep the homepage populated if YouTube is temporarily unavailable.
   }
+
+  return fallbackSermons;
 };
 
 export default async function Home() {
