@@ -14,7 +14,9 @@ const churchAddress = "Sector 22, Dwarka, Delhi, 110077";
 const emailAddress = "cbfdwarka2021@gmail.com";
 const phoneNumber = "+91 97402 77002";
 const phoneHref = "tel:+919740277002";
-const directionsHref = "https://maps.app.goo.gl/Jw4P6KEhqbsKPySj7";
+const whatsappMessage = "Hello CBF Dwarka, I would like to know more about Sunday worship.";
+const whatsappHref = `https://wa.me/919740277002?text=${encodeURIComponent(whatsappMessage)}`;
+const directionsHref = "https://maps.app.goo.gl/vQjeCoeKBKhdb3vc7";
 
 const MailIcon = () => (
   <svg aria-hidden="true" viewBox="0 0 32 32" className="contact-icon">
@@ -26,6 +28,13 @@ const MailIcon = () => (
 const PhoneIcon = () => (
   <svg aria-hidden="true" viewBox="0 0 32 32" className="contact-icon">
     <path d="M11.2 6.8 14 12l-2.1 2.2c1.3 2.7 3.4 4.8 6.1 6.1l2.2-2.1 5.2 2.8c.5.3.7.8.6 1.4-.4 2.2-2.3 3.8-4.6 3.8C13 26.2 5.8 19 5.8 10.6c0-2.3 1.6-4.2 3.8-4.6.6-.1 1.1.1 1.6.8Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+  </svg>
+);
+
+const WhatsAppIcon = () => (
+  <svg aria-hidden="true" viewBox="0 0 32 32" className="contact-icon">
+    <path d="M7.7 24.3 9 20.1a9.3 9.3 0 1 1 3.3 3.1l-4.6 1.1Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" />
+    <path d="M12.6 11.8c.2-.5.4-.6.7-.6h.5c.2 0 .4 0 .6.4l.9 2c.1.3.1.5-.1.7l-.6.7c-.2.2-.2.4-.1.6.5 1 1.4 1.9 2.4 2.4.3.2.5.1.7-.1l.8-.8c.2-.2.4-.2.7-.1l2 .9c.3.1.4.3.4.6v.5c0 .3-.1.6-.6.8-.5.3-1.6.8-3 .5-2.6-.5-5.4-3.1-6.2-5.7-.4-1.4.4-2.6.9-2.8Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.5" />
   </svg>
 );
 
@@ -79,6 +88,13 @@ const contactMethods = [
     icon: <PhoneIcon />,
   },
   {
+    title: "WhatsApp",
+    body: "Send a WhatsApp message for quick visit or direction related questions.",
+    value: "WhatsApp Us",
+    href: whatsappHref,
+    icon: <WhatsAppIcon />,
+  },
+  {
     title: "Directions",
     body: "We meet at Mount Carmel School, Sector 22, Dwarka.",
     value: "Open Google Maps",
@@ -110,7 +126,7 @@ export default function ContactPage() {
 
       <section className="contact-methods" aria-label="Contact methods">
         {contactMethods.map((method) => (
-          <a className="contact-method-card" href={method.href} key={method.title} target={method.title === "Directions" ? "_blank" : undefined} rel={method.title === "Directions" ? "noreferrer" : undefined}>
+          <a className="contact-method-card" href={method.href} key={method.title} target={method.title === "Directions" || method.title === "WhatsApp" ? "_blank" : undefined} rel={method.title === "Directions" || method.title === "WhatsApp" ? "noreferrer" : undefined}>
             {method.icon}
             <span>{method.title}</span>
             <h2>{method.value}</h2>
@@ -130,6 +146,7 @@ export default function ContactPage() {
         <div className="contact-message-actions">
           <a className="contact-primary" href={`mailto:${emailAddress}?subject=Contact%20CBF%20Dwarka`}>Email CBF Dwarka</a>
           <a className="contact-secondary" href={phoneHref}>Call the Church</a>
+          <a className="contact-secondary" href={whatsappHref} target="_blank" rel="noreferrer">WhatsApp Us</a>
         </div>
       </section>
 

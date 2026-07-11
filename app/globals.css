@@ -91,7 +91,7 @@ main {
 .hero-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(24, 22, 22, 0.34) 0%, rgba(24, 22, 22, 0.16) 48%, rgba(24, 22, 22, 0.08) 100%);
+  background: linear-gradient(90deg, rgba(24, 22, 22, 0.22) 0%, rgba(24, 22, 22, 0.08) 48%, rgba(24, 22, 22, 0.02) 100%);
   pointer-events: none;
 }
 
@@ -2133,7 +2133,7 @@ p {
 
 .contact-methods {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
   padding-bottom: 88px;
 }

@@ -85,7 +85,7 @@ const maxRecentYouTubeVideos = 3;
 const maxYouTubeCandidates = 50;
 const maxShortVideoDurationSeconds = 180;
 const eventTimeZone = "Asia/Kolkata";
-const maxHomepageEvents = 50;
+const maxHomepageEvents = 3;
 
 const weekdayIndexes = {
   sunday: 0,
@@ -345,14 +345,15 @@ const getXmlAttribute = (xml: string, tagName: string, attributeName: string) =>
   return decodeXmlText(match?.[1]?.trim() || "");
 };
 
-const getVideoDescription = (description = "") => {
+const getVideoDescription = (description = "", fallbackText = "") => {
   const cleanDescription = description.replace(/\s+/g, " ").trim();
+  const sourceText = cleanDescription || fallbackText.replace(/\s+/g, " ").trim();
 
-  if (!cleanDescription) {
-    return "Watch this message from CBF Dwarka.";
+  if (!sourceText) {
+    return "Recent teaching from CBF Dwarka.";
   }
 
-  const firstSentence = cleanDescription.match(/^.{1,120}?(?:[.!?](?:\s|$)|$)/)?.[0]?.trim() || cleanDescription.slice(0, 120).trim();
+  const firstSentence = sourceText.match(/^.{1,120}?(?:[.!?](?:\s|$)|$)/)?.[0]?.trim() || sourceText.slice(0, 120).trim();
   return firstSentence.length > 120 ? `${firstSentence.slice(0, 117)}...` : firstSentence;
 };
 
@@ -639,7 +640,7 @@ const mapYouTubeVideosToSermons = (
     number: String(index + 1).padStart(2, "0"),
     kind: "Recent Video",
     title: video.title,
-    body: getVideoDescription(video.description),
+    body: getVideoDescription(video.description, video.title),
     href: video.href,
   }));
 };
@@ -819,7 +820,7 @@ export default async function Home() {
             <p className="visit-body">
               Come as you are and encounter the living God. Spirit-filled worship, Gospel-centered preaching, and a community that welcomes all.
             </p>
-            <a className="directions" href="https://maps.app.goo.gl/Jw4P6KEhqbsKPySj7">
+            <a className="directions" href="https://maps.app.goo.gl/vQjeCoeKBKhdb3vc7">
               Get Directions <UpRight />
             </a>
           </div>
