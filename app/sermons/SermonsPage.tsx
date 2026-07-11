@@ -76,7 +76,7 @@ export async function SermonsPage({ selectedVideoId }: SermonsPageProps) {
           </article>
         </div>
 
-        <aside className="sermon-episode-list" aria-labelledby="sermon-list-title">
+        <section className="sermon-episode-list" aria-labelledby="sermon-list-title">
           <div className="sermon-list-heading">
             <p className="about-kicker">Recent Videos</p>
             <h2 id="sermon-list-title">More Messages</h2>
@@ -92,7 +92,10 @@ export async function SermonsPage({ selectedVideoId }: SermonsPageProps) {
                   key={video.videoId || video.title}
                   aria-current={isActive ? "page" : undefined}
                 >
-                  <img src={video.image} alt="" width={148} height={83} loading="lazy" />
+                  <div className="sermon-episode-image">
+                    <img src={video.image} alt="" width={356} height={200} loading="lazy" />
+                    <span>{video.kind}</span>
+                  </div>
                   <span>
                     <strong>{video.title}</strong>
                     <small>{formatPublishedDate(video.publishedAt)}</small>
@@ -101,7 +104,7 @@ export async function SermonsPage({ selectedVideoId }: SermonsPageProps) {
               );
             })}
           </div>
-        </aside>
+        </section>
       </section>
 
       <footer className="footer sermon-footer" id="contact">

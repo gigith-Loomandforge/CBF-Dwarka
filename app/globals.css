@@ -302,12 +302,13 @@ p {
 }
 
 .hero-copy h1 {
-  max-width: 380px;
+  max-width: 620px;
   margin: 0;
   font-family: Playfair Display, Georgia, serif;
   font-size: 18px;
   line-height: 1.55;
   font-weight: 400;
+  white-space: nowrap;
 }
 
 .hero-copy,
@@ -910,10 +911,7 @@ p {
 }
 
 .sermon-watch {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
-  gap: 32px;
-  align-items: start;
+  display: block;
   padding-bottom: 96px;
 }
 
@@ -1001,12 +999,7 @@ p {
 }
 
 .sermon-episode-list {
-  position: sticky;
-  top: 112px;
-  padding: 24px;
-  border: 1px solid #eee8dc;
-  border-radius: 8px;
-  background: #fff;
+  margin-top: 72px;
 }
 
 .sermon-list-heading h2 {
@@ -1020,36 +1013,74 @@ p {
 
 .sermon-episode-stack {
   display: grid;
-  gap: 14px;
-  margin-top: 24px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 28px;
 }
 
 .sermon-episode-card {
-  display: grid;
-  grid-template-columns: 118px minmax(0, 1fr);
-  gap: 14px;
-  align-items: center;
-  padding: 10px;
-  border: 1px solid transparent;
+  display: block;
+  overflow: hidden;
+  border: 1px solid #ece7dc;
   border-radius: 8px;
-  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms var(--ease-out);
+  background: #fff;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms var(--ease-out);
 }
 
 .sermon-episode-card:hover,
 .sermon-episode-card:focus-visible,
 .sermon-episode-card.active {
   border-color: rgba(225, 164, 59, 0.55);
-  background: #fbf6eb;
+  box-shadow: 0 18px 42px rgba(27, 27, 27, 0.1);
   transform: translateY(-2px);
 }
 
-.sermon-episode-card img {
-  width: 118px;
-  height: auto;
+.sermon-episode-image {
+  position: relative;
   aspect-ratio: 16 / 9;
-  object-fit: cover;
-  border-radius: 6px;
+  overflow: hidden;
   background: #ece7dc;
+}
+
+.sermon-episode-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(17, 17, 17, 0.08) 0%, rgba(17, 17, 17, 0.38) 100%);
+}
+
+.sermon-episode-image img {
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 220ms var(--ease-out), filter 180ms ease;
+}
+
+.sermon-episode-card:hover .sermon-episode-image img,
+.sermon-episode-card:focus-visible .sermon-episode-image img {
+  filter: saturate(1.05) contrast(1.02);
+  transform: scale(1.03);
+}
+
+.sermon-episode-image span {
+  position: absolute;
+  z-index: 1;
+  top: 24px;
+  left: 24px;
+  color: #fff;
+  font-family: Montserrat, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sermon-episode-card > span {
+  display: block;
+  min-height: 166px;
+  padding: 28px 24px;
 }
 
 .sermon-episode-card strong,
@@ -1060,16 +1091,16 @@ p {
 .sermon-episode-card strong {
   color: var(--deep);
   font-family: Montserrat, Arial, sans-serif;
-  font-size: 13px;
+  font-size: 22px;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.28;
 }
 
 .sermon-episode-card small {
-  margin-top: 7px;
-  color: #777;
+  margin-top: 14px;
+  color: #5d5d5d;
   font-family: Montserrat, Arial, sans-serif;
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.35;
 }
 
@@ -1382,7 +1413,7 @@ p {
   }
 
   .hero-copy h1 {
-    max-width: 360px;
+    max-width: 620px;
     font-size: 18px;
     line-height: 1.55;
   }
@@ -1665,6 +1696,7 @@ p {
     max-width: 300px;
     font-size: 17px;
     line-height: 1.5;
+    white-space: normal;
   }
 
   .feature-wrap {
@@ -2530,25 +2562,11 @@ p {
   }
 
   .sermon-watch {
-    grid-template-columns: 1fr;
-    gap: 36px;
     padding-bottom: 72px;
-  }
-
-  .sermon-episode-list {
-    position: static;
   }
 
   .sermon-episode-stack {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .sermon-episode-card {
-    grid-template-columns: 1fr;
-  }
-
-  .sermon-episode-card img {
-    width: 100%;
   }
 
   .contact-page {
@@ -2624,7 +2642,7 @@ p {
   }
 
   .sermon-episode-list {
-    padding: 18px;
+    margin-top: 48px;
   }
 
   .sermon-episode-stack {
