@@ -13,9 +13,13 @@ export default defineConfig({
         S.list()
           .title("CBF Dwarka CMS")
           .items([
+            S.listItem()
+              .title("Homepage Settings")
+              .id("homepageSettings")
+              .child(S.document().schemaType("homepageSettings").documentId("homepageSettings")),
             S.documentTypeListItem("event").title("Events"),
             S.divider(),
-            ...S.documentTypeListItems().filter((item) => item.getId() !== "event"),
+            ...S.documentTypeListItems().filter((item) => !["event", "homepageSettings"].includes(item.getId() || "")),
           ]),
     }),
   ],

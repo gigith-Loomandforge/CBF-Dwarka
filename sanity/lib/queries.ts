@@ -1,6 +1,10 @@
 import { groq } from "next-sanity";
 
 export const homepageQuery = groq`{
+  "homepage": *[_type == "homepageSettings"] | order(_updatedAt desc)[0] {
+    "heroImageUrl": heroImage.asset->url,
+    "heroImageAlt": coalesce(heroImage.alt, "CBF Dwarka church family")
+  },
   "events": *[
     _type == "event" &&
     showOnHomepage == true &&

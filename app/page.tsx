@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { SiteHeader } from "./SiteHeader";
+import { getFeaturedSermons } from "./sermons/sermon-data";
 import { client } from "../sanity/lib/client";
 import { homepageQuery } from "../sanity/lib/queries";
 
@@ -76,14 +76,7 @@ const FacebookIcon = () => (
   </svg>
 );
 
-const churchAddress = "Sector 22, Dwarka, Delhi, 110077";
-const youtubeChannelUrl = "https://www.youtube.com/@cbfdwarka";
-const youtubeHandle = "@cbfdwarka";
-const youtubeChannelId = "UCTRZ9Q_bNa8ZgWeNE-2b6wA";
-const youtubeRssFeedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${youtubeChannelId}`;
-const maxRecentYouTubeVideos = 3;
-const maxYouTubeCandidates = 50;
-const maxShortVideoDurationSeconds = 180;
+const churchAddress = "Taekwondo room, Mount Carmel School, Sector 22, Dwarka";
 const eventTimeZone = "Asia/Kolkata";
 const maxHomepageEvents = 3;
 
@@ -164,6 +157,10 @@ type SanityEvent = {
 };
 
 type SanityHomepageContent = {
+  homepage?: {
+    heroImageUrl?: string;
+    heroImageAlt?: string;
+  };
   events?: SanityEvent[];
 };
 
@@ -211,151 +208,6 @@ const fallbackEvents: ChurchEvent[] = [
     order: 3,
   },
 ];
-
-type Sermon = {
-  image: string;
-  number: string;
-  kind: string;
-  title: string;
-  body: string;
-  href: string;
-};
-
-type YouTubeChannelListResponse = {
-  items?: Array<{
-    contentDetails?: {
-      relatedPlaylists?: {
-        uploads?: string;
-      };
-    };
-  }>;
-};
-
-type YouTubePlaylistItemsResponse = {
-  nextPageToken?: string;
-  items?: Array<{
-    contentDetails?: {
-      videoId?: string;
-    };
-  }>;
-};
-
-type YouTubeThumbnails = Record<string, { url?: string; width?: number; height?: number }>;
-
-type YouTubeVideosResponse = {
-  items?: Array<{
-    id?: string;
-    snippet?: {
-      title?: string;
-      description?: string;
-      thumbnails?: YouTubeThumbnails;
-    };
-    contentDetails?: {
-      duration?: string;
-    };
-    statistics?: {
-      viewCount?: string;
-    };
-  }>;
-};
-
-const fallbackSermons: Sermon[] = [
-  {
-    image: "/assets/sermon-1.png",
-    number: "01",
-    kind: "Sunday Sermon",
-    title: "Walking in Faith",
-    body: "Discovering trust in the unknown paths.",
-    href: youtubeChannelUrl,
-  },
-  {
-    image: "/assets/sermon-2.png",
-    number: "02",
-    kind: "Bible Study",
-    title: "The Prodigal Son",
-    body: "A profound study on returning home.",
-    href: youtubeChannelUrl,
-  },
-  {
-    image: "/assets/sermon-3.png",
-    number: "03",
-    kind: "Midweek Message",
-    title: "Grace Renewed",
-    body: "Fresh perspective for the weary soul.",
-    href: youtubeChannelUrl,
-  },
-];
-
-const getBestThumbnail = (thumbnails?: YouTubeThumbnails) => {
-  if (!thumbnails) {
-    return "";
-  }
-
-  return thumbnails.maxres?.url || thumbnails.standard?.url || thumbnails.high?.url || thumbnails.medium?.url || thumbnails.default?.url || "";
-};
-
-const getYouTubeDurationSeconds = (duration?: string) => {
-  if (!duration) {
-    return 0;
-  }
-
-  const match = duration.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
-
-  if (!match) {
-    return 0;
-  }
-
-  const [, hours = "0", minutes = "0", seconds = "0"] = match;
-
-  return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
-};
-
-const isLongFormYouTubeVideo = (duration?: string) => {
-  return getYouTubeDurationSeconds(duration) > maxShortVideoDurationSeconds;
-};
-
-const decodeXmlText = (value = "") => {
-  const withoutCdata = value.replace(/^<!\[CDATA\[/, "").replace(/\]\]>$/, "");
-  const namedEntities: Record<string, string> = {
-    amp: "&",
-    apos: "'",
-    gt: ">",
-    lt: "<",
-    quot: '"',
-  };
-
-  return withoutCdata.replace(/&(#\d+|#x[\da-f]+|[a-z]+);/gi, (entity, code: string) => {
-    if (code[0] === "#") {
-      const isHex = code[1]?.toLowerCase() === "x";
-      const codePoint = Number.parseInt(code.slice(isHex ? 2 : 1), isHex ? 16 : 10);
-      return Number.isNaN(codePoint) ? entity : String.fromCodePoint(codePoint);
-    }
-
-    return namedEntities[code.toLowerCase()] || entity;
-  });
-};
-
-const getXmlText = (xml: string, tagName: string) => {
-  const match = xml.match(new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)</${tagName}>`, "i"));
-  return decodeXmlText(match?.[1]?.trim() || "");
-};
-
-const getXmlAttribute = (xml: string, tagName: string, attributeName: string) => {
-  const match = xml.match(new RegExp(`<${tagName}[^>]*\\s${attributeName}="([^"]*)"`, "i"));
-  return decodeXmlText(match?.[1]?.trim() || "");
-};
-
-const getVideoDescription = (description = "", fallbackText = "") => {
-  const cleanDescription = description.replace(/\s+/g, " ").trim();
-  const sourceText = cleanDescription || fallbackText.replace(/\s+/g, " ").trim();
-
-  if (!sourceText) {
-    return "Recent teaching from CBF Dwarka.";
-  }
-
-  const firstSentence = sourceText.match(/^.{1,120}?(?:[.!?](?:\s|$)|$)/)?.[0]?.trim() || sourceText.slice(0, 120).trim();
-  return firstSentence.length > 120 ? `${firstSentence.slice(0, 117)}...` : firstSentence;
-};
 
 const getWeekdayKey = (value?: string): WeekdayKey | undefined => {
   if (!value || !Object.prototype.hasOwnProperty.call(weekdayIndexes, value)) {
@@ -610,156 +462,6 @@ const getCmsEvents = (events: SanityEvent[] | undefined, now: Date): ChurchEvent
   return getUpcomingEvents(cmsEvents, now);
 };
 
-const youtubeApiFetch = async <T,>(path: string, params: Record<string, string>, apiKey: string) => {
-  const url = new URL(`https://www.googleapis.com/youtube/v3/${path}`);
-
-  Object.entries({ ...params, key: apiKey }).forEach(([key, value]) => {
-    url.searchParams.set(key, value);
-  });
-
-  const response = await fetch(url, { next: { revalidate } });
-
-  if (!response.ok) {
-    throw new Error(`YouTube API request failed: ${path}`);
-  }
-
-  return response.json() as Promise<T>;
-};
-
-const mapYouTubeVideosToSermons = (
-  videos: Array<{
-    id: string;
-    title: string;
-    description?: string;
-    thumbnail: string;
-    href: string;
-  }>,
-) => {
-  return videos.slice(0, maxRecentYouTubeVideos).map((video, index) => ({
-    image: video.thumbnail,
-    number: String(index + 1).padStart(2, "0"),
-    kind: "Recent Video",
-    title: video.title,
-    body: getVideoDescription(video.description, video.title),
-    href: video.href,
-  }));
-};
-
-const getYouTubeApiSermons = async (apiKey: string): Promise<Sermon[]> => {
-  const channel = await youtubeApiFetch<YouTubeChannelListResponse>(
-    "channels",
-    {
-      forHandle: youtubeHandle,
-      part: "contentDetails",
-    },
-    apiKey,
-  );
-
-  const uploadsPlaylistId = channel.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
-
-  if (!uploadsPlaylistId) {
-    return [];
-  }
-
-  const playlistItems = await youtubeApiFetch<YouTubePlaylistItemsResponse>(
-    "playlistItems",
-    {
-      playlistId: uploadsPlaylistId,
-      part: "contentDetails",
-      maxResults: String(maxYouTubeCandidates),
-    },
-    apiKey,
-  );
-
-  const videoIds =
-    playlistItems.items
-      ?.map((item) => item.contentDetails?.videoId)
-      .filter((videoId): videoId is string => Boolean(videoId))
-      .slice(0, maxYouTubeCandidates) || [];
-
-  const videos: NonNullable<YouTubeVideosResponse["items"]> = [];
-
-  for (let index = 0; index < videoIds.length; index += 50) {
-    const videoResponse = await youtubeApiFetch<YouTubeVideosResponse>(
-      "videos",
-      {
-        id: videoIds.slice(index, index + 50).join(","),
-        part: "snippet,contentDetails",
-      },
-      apiKey,
-    );
-
-    videos.push(...(videoResponse.items || []));
-  }
-
-  const recentVideos = videos
-    .filter((video) => video.id && video.snippet?.title && getBestThumbnail(video.snippet.thumbnails) && isLongFormYouTubeVideo(video.contentDetails?.duration))
-    .slice(0, maxRecentYouTubeVideos)
-    .map((video) => ({
-      id: video.id || "",
-      title: video.snippet?.title || "CBF Dwarka Sermon",
-      description: video.snippet?.description,
-      thumbnail: getBestThumbnail(video.snippet?.thumbnails),
-      href: `https://www.youtube.com/watch?v=${video.id}`,
-    }));
-
-  return mapYouTubeVideosToSermons(recentVideos);
-};
-
-const getYouTubeRssSermons = async (): Promise<Sermon[]> => {
-  const response = await fetch(youtubeRssFeedUrl, { next: { revalidate } });
-
-  if (!response.ok) {
-    return [];
-  }
-
-  const feed = await response.text();
-  const recentVideos = feed
-    .split(/<entry>/i)
-    .slice(1)
-    .map((entry) => {
-      const id = getXmlText(entry, "yt:videoId");
-      const title = getXmlText(entry, "title");
-      const href = getXmlAttribute(entry, "link", "href") || `https://www.youtube.com/watch?v=${id}`;
-      const description = getXmlText(entry, "media:description");
-      const thumbnail = getXmlAttribute(entry, "media:thumbnail", "url") || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-
-      return { id, title, href, description, thumbnail };
-    })
-    .filter((video) => video.id && video.title && video.thumbnail && !video.href.includes("/shorts/") && !/#shorts/i.test(video.description))
-    .slice(0, maxRecentYouTubeVideos);
-
-  return mapYouTubeVideosToSermons(recentVideos);
-};
-
-const getFeaturedSermons = async (): Promise<Sermon[]> => {
-  const apiKey = process.env.YOUTUBE_API_KEY?.trim().replace(/^["']|["']$/g, "");
-
-  if (apiKey?.startsWith("AIza")) {
-    try {
-      const apiSermons = await getYouTubeApiSermons(apiKey);
-
-      if (apiSermons.length) {
-        return apiSermons;
-      }
-    } catch {
-      // Fall through to the public RSS feed when the API key is missing, invalid, or quota-limited.
-    }
-  }
-
-  try {
-    const rssSermons = await getYouTubeRssSermons();
-
-    if (rssSermons.length) {
-      return rssSermons;
-    }
-  } catch {
-    // Static cards keep the homepage populated if YouTube is temporarily unavailable.
-  }
-
-  return fallbackSermons;
-};
-
 export default async function Home() {
   const now = new Date();
   const homepageContent = await getSanityHomepageContent();
@@ -767,11 +469,13 @@ export default async function Home() {
   const visibleEvents = events.length ? events : getUpcomingEvents(fallbackEvents, now);
   const primaryEvent = visibleEvents[0] || prepareChurchEvent(fallbackEvents[0], now) || fallbackEvents[0];
   const visibleSermons = await getFeaturedSermons();
+  const heroImageSrc = homepageContent.homepage?.heroImageUrl || "/assets/hero.png?v=20260711";
+  const heroImageAlt = homepageContent.homepage?.heroImageAlt || "CBF Dwarka church family";
 
   return (
     <main>
       <section className="hero" aria-label="CBF Dwarka introduction">
-        <Image src="/assets/hero.png?v=20260711" alt="" fill priority sizes="100vw" className="hero-image" unoptimized />
+        <img src={heroImageSrc} alt={heroImageAlt} className="hero-image" fetchPriority="high" />
         <div className="hero-gradient" />
         <SiteHeader />
         <div className="hero-copy">
@@ -779,7 +483,7 @@ export default async function Home() {
             <span>Welcome to</span>
             <span>CHRISTIAN BELIEVERS FELLOWSHIP</span>
           </p>
-          <h1>A Gospel Centric Church in Dwarka, New Delhi</h1>
+          <h1>A Gospel-Centered Church in the Heart of Dwarka</h1>
         </div>
       </section>
       <div className="sunday-bg" aria-hidden="true" />
@@ -853,19 +557,17 @@ export default async function Home() {
         <div className="section-header sermons-header">
           <div>
             <h2 id="sermons-title">Featured Sermons</h2>
-            <p>Rooted in the Word — listen to recent teachings and series.</p>
+            <p>Rooted in the Word — watch recent teachings and series.</p>
           </div>
-          <a className="watch-all" href={youtubeChannelUrl} target="_blank" rel="noreferrer">Watch All Sermons <Arrow dark /></a>
+          <a className="watch-all" href="/sermons">Watch All Sermons <Arrow dark /></a>
         </div>
         <div className="sermon-grid">
           {visibleSermons.map((sermon) => (
             <a
               className="sermon-card"
               href={sermon.href}
-              key={sermon.title}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`Watch sermons on YouTube: ${sermon.title}`}
+              key={sermon.videoId || sermon.title}
+              aria-label={`Watch sermon on CBF Dwarka: ${sermon.title}`}
             >
               <img src={sermon.image} alt="" width={356} height={200} loading="eager" />
               <div className="sermon-meta" aria-hidden="true">
@@ -889,7 +591,7 @@ export default async function Home() {
           <div className="footer-contact">
             <h3>Contact Us</h3>
             <a href="mailto:cbfdwarka2021@gmail.com">cbfdwarka2021@gmail.com</a>
-            <a href="tel:+919740277002">+91 97402 77002</a>
+            <a href="tel:+919910800733">+91 99108 00733</a>
             <div className="socials" aria-label="Social links">
               <a href="#" aria-label="Instagram"><InstagramIcon /></a>
               <a href="#" aria-label="Facebook"><FacebookIcon /></a>

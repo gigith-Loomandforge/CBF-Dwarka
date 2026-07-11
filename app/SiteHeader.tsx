@@ -8,7 +8,7 @@ const navItems = [
   { href: "/", label: "Home", path: "/" },
   { href: "/about", label: "About", path: "/about" },
   { href: "/#connect", label: "Connect" },
-  { href: "/#sermons", label: "Sermons" },
+  { href: "/sermons", label: "Sermons", path: "/sermons" },
   { href: "/contact", label: "Contact", path: "/contact" },
 ];
 
@@ -22,7 +22,7 @@ export function SiteHeader() {
       </a>
       <nav className="nav" aria-label="Primary navigation">
         {navItems.map((item) => {
-          const isActive = item.path === pathname;
+          const isActive = item.path ? pathname === item.path || pathname.startsWith(`${item.path}/`) : false;
           return (
             <a key={item.label} className={isActive ? "active" : undefined} href={item.href} aria-current={isActive ? "page" : undefined}>
               {item.label}

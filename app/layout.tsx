@@ -5,9 +5,9 @@ import { SmoothScroll } from "./SmoothScroll";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://cbfdwarka.com"),
-  title: "CBF Dwarka | Gospel Centric Church in Dwarka, New Delhi",
+  title: "CBF Dwarka | Gospel-Centered Church in the Heart of Dwarka",
   description:
-    "Christian Believers Fellowship Dwarka is a Gospel centric church meeting in Dwarka, New Delhi for worship, community, discipleship, sermons, and events.",
+    "Christian Believers Fellowship Dwarka is a Gospel-centered church in the heart of Dwarka for worship, community, discipleship, sermons, and events.",
   alternates: {
     canonical: "/",
   },
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "CBF Dwarka",
     description:
-      "A Gospel Centric Church in Dwarka, New Delhi. Join Sunday worship, explore sermons, and connect with the community.",
+      "A Gospel-Centered Church in the Heart of Dwarka. Join Sunday worship, explore sermons, and connect with the community.",
     type: "website",
     images: ["/assets/hero.png"],
   },
@@ -31,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
         <Script id="scroll-state" strategy="beforeInteractive">
           {`(() => {

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   },
 };
 
-const churchAddress = "Sector 22, Dwarka, Delhi, 110077";
+const churchAddress = "Taekwondo room, Mount Carmel School, Sector 22, Dwarka";
 
 const BookIcon = () => (
   <svg aria-hidden="true" viewBox="0 0 32 32" className="about-value-icon">
@@ -220,7 +220,7 @@ export default function AboutPage() {
           <div className="footer-contact">
             <h3>Contact Us</h3>
             <a href="mailto:cbfdwarka2021@gmail.com">cbfdwarka2021@gmail.com</a>
-            <a href="tel:+919740277002">+91 97402 77002</a>
+            <a href="tel:+919910800733">+91 99108 00733</a>
             <div className="socials" aria-label="Social links">
               <a href="#" aria-label="Instagram"><InstagramIcon /></a>
               <a href="#" aria-label="Facebook"><FacebookIcon /></a>

@@ -10,12 +10,12 @@ export const metadata: Metadata = {
   },
 };
 
-const churchAddress = "Sector 22, Dwarka, Delhi, 110077";
+const churchAddress = "Taekwondo room, Mount Carmel School, Sector 22, Dwarka";
 const emailAddress = "cbfdwarka2021@gmail.com";
-const phoneNumber = "+91 97402 77002";
-const phoneHref = "tel:+919740277002";
+const phoneNumber = "+91 99108 00733";
+const phoneHref = "tel:+919910800733";
 const whatsappMessage = "Hello CBF Dwarka, I would like to know more about Sunday worship.";
-const whatsappHref = `https://wa.me/919740277002?text=${encodeURIComponent(whatsappMessage)}`;
+const whatsappHref = `https://wa.me/919910800733?text=${encodeURIComponent(whatsappMessage)}`;
 const directionsHref = "https://maps.app.goo.gl/vQjeCoeKBKhdb3vc7";
 
 const MailIcon = () => (
@@ -96,7 +96,7 @@ const contactMethods = [
   },
   {
     title: "Directions",
-    body: "We meet at Mount Carmel School, Sector 22, Dwarka.",
+    body: "We meet at Taekwondo room, Mount Carmel School, Sector 22, Dwarka.",
     value: "Open Google Maps",
     href: directionsHref,
     icon: <MapIcon />,
@@ -120,7 +120,7 @@ export default function ContactPage() {
           <ClockIcon />
           <span>Sunday Worship</span>
           <strong>Every Sunday<br />10:30 AM</strong>
-          <p>Mount Carmel School, Sector 22, Dwarka</p>
+          <p>{churchAddress}</p>
         </aside>
       </section>
 
