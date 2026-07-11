@@ -76,7 +76,7 @@ const FacebookIcon = () => (
   </svg>
 );
 
-const churchAddress = "Taekwondo room, Mount Carmel School, Sector 22, Dwarka";
+const churchAddress = "CBF Dwarka, Taekwondo Room, Mount Carmel School, Sector 22, Dwarka";
 const eventTimeZone = "Asia/Kolkata";
 const maxHomepageEvents = 3;
 
@@ -483,7 +483,7 @@ export default async function Home() {
             <span>Welcome to</span>
             <span>CHRISTIAN BELIEVERS FELLOWSHIP</span>
           </p>
-          <h1>A Gospel-Centered Church in the Heart of Dwarka</h1>
+          <h1>A Gospel-Centered Church in the Heart of Dwarka, New Delhi</h1>
         </div>
       </section>
       <div className="sunday-bg" aria-hidden="true" />

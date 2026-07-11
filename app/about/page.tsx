@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   },
 };
 
-const churchAddress = "Taekwondo room, Mount Carmel School, Sector 22, Dwarka";
+const churchAddress = "CBF Dwarka, Taekwondo Room, Mount Carmel School, Sector 22, Dwarka";
 
 const BookIcon = () => (
   <svg aria-hidden="true" viewBox="0 0 32 32" className="about-value-icon">

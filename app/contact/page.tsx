@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   },
 };
 
-const churchAddress = "Taekwondo room, Mount Carmel School, Sector 22, Dwarka";
+const churchAddress = "CBF Dwarka, Taekwondo Room, Mount Carmel School, Sector 22, Dwarka";
 const emailAddress = "cbfdwarka2021@gmail.com";
 const phoneNumber = "+91 99108 00733";
 const phoneHref = "tel:+919910800733";
@@ -96,7 +96,7 @@ const contactMethods = [
   },
   {
     title: "Directions",
-    body: "We meet at Taekwondo room, Mount Carmel School, Sector 22, Dwarka.",
+    body: "We meet at CBF Dwarka, Taekwondo Room, Mount Carmel School, Sector 22, Dwarka.",
     value: "Open Google Maps",
     href: directionsHref,
     icon: <MapIcon />,

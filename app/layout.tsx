@@ -5,7 +5,7 @@ import { SmoothScroll } from "./SmoothScroll";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://cbfdwarka.com"),
-  title: "CBF Dwarka | Gospel-Centered Church in the Heart of Dwarka",
+  title: "CBF Dwarka | Gospel-Centered Church in the Heart of Dwarka, New Delhi",
   description:
     "Christian Believers Fellowship Dwarka is a Gospel-centered church in the heart of Dwarka for worship, community, discipleship, sermons, and events.",
   alternates: {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "CBF Dwarka",
     description:
-      "A Gospel-Centered Church in the Heart of Dwarka. Join Sunday worship, explore sermons, and connect with the community.",
+      "A Gospel-Centered Church in the Heart of Dwarka, New Delhi. Join Sunday worship, explore sermons, and connect with the community.",
     type: "website",
     images: ["/assets/hero.png"],
   },
