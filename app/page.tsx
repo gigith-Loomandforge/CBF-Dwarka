@@ -1,3 +1,5 @@
+import Image from "next/image";
+import Link from "next/link";
 import { SiteHeader } from "./SiteHeader";
 import { getFeaturedSermons } from "./sermons/sermon-data";
 import { client } from "../sanity/lib/client";
@@ -469,13 +471,13 @@ export default async function Home() {
   const visibleEvents = events.length ? events : getUpcomingEvents(fallbackEvents, now);
   const primaryEvent = visibleEvents[0] || prepareChurchEvent(fallbackEvents[0], now) || fallbackEvents[0];
   const visibleSermons = await getFeaturedSermons();
-  const heroImageSrc = homepageContent.homepage?.heroImageUrl || "/assets/hero.png?v=20260711";
+  const heroImageSrc = homepageContent.homepage?.heroImageUrl || "/assets/hero.png";
   const heroImageAlt = homepageContent.homepage?.heroImageAlt || "CBF Dwarka church family";
 
   return (
     <main>
       <section className="hero" aria-label="CBF Dwarka introduction">
-        <img src={heroImageSrc} alt={heroImageAlt} className="hero-image" fetchPriority="high" />
+        <Image src={heroImageSrc} alt={heroImageAlt} className="hero-image" fill priority sizes="100vw" />
         <div className="hero-gradient" />
         <SiteHeader />
         <div className="hero-copy">
@@ -507,7 +509,7 @@ export default async function Home() {
                   <p>{card.body}</p>
                 )}
               </div>
-              <a href={card.title === "Upcoming Events" ? "#events" : card.title === "What We Believe" ? "/about#beliefs" : "/connect"}>{card.action} <SmallArrow /></a>
+              <Link href={card.title === "Upcoming Events" ? "#events" : card.title === "What We Believe" ? "/about#beliefs" : "/connect"}>{card.action} <SmallArrow /></Link>
             </article>
           ))}
         </div>
@@ -559,24 +561,24 @@ export default async function Home() {
             <h2 id="sermons-title">Featured Sermons</h2>
             <p>Rooted in the Word — watch recent teachings and series.</p>
           </div>
-          <a className="watch-all" href="/sermons">Watch All Sermons <Arrow dark /></a>
+          <Link className="watch-all" href="/sermons">Watch All Sermons <Arrow dark /></Link>
         </div>
         <div className="sermon-grid">
           {visibleSermons.map((sermon) => (
-            <a
+            <Link
               className="sermon-card"
               href={sermon.href}
               key={sermon.videoId || sermon.title}
               aria-label={`Watch sermon on CBF Dwarka: ${sermon.title}`}
             >
-              <img src={sermon.image} alt="" width={356} height={200} loading="eager" />
+              <Image src={sermon.image} alt="" width={356} height={200} sizes="(max-width: 900px) 100vw, 356px" />
               <div className="sermon-meta" aria-hidden="true">
                 <span>{sermon.number}</span>
                 <strong>{sermon.kind}</strong>
               </div>
               <h3>{sermon.title}</h3>
               <p>{sermon.body}</p>
-            </a>
+            </Link>
           ))}
         </div>
       </section>

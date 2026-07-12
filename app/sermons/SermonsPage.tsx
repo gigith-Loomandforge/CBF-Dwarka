@@ -1,3 +1,5 @@
+import Image from "next/image";
+import Link from "next/link";
 import { SiteHeader } from "../SiteHeader";
 import { getSermonLibrary, getYoutubeEmbedUrl, youtubeChannelUrl } from "./sermon-data";
 
@@ -63,7 +65,7 @@ export async function SermonsPage({ selectedVideoId }: SermonsPageProps) {
               />
             ) : (
               <div className="sermon-player-fallback">
-                {selected?.image ? <img src={selected.image} alt="" /> : null}
+                {selected?.image ? <Image src={selected.image} alt="" width={480} height={360} sizes="(max-width: 900px) 100vw, 720px" /> : null}
                 <a href={youtubeChannelUrl} target="_blank" rel="noreferrer">Watch on YouTube</a>
               </div>
             )}
@@ -86,21 +88,21 @@ export async function SermonsPage({ selectedVideoId }: SermonsPageProps) {
               const isActive = selected?.videoId && video.videoId === selected.videoId;
 
               return (
-                <a
+                <Link
                   className={isActive ? "sermon-episode-card active" : "sermon-episode-card"}
                   href={video.href}
                   key={video.videoId || video.title}
                   aria-current={isActive ? "page" : undefined}
                 >
                   <div className="sermon-episode-image">
-                    <img src={video.image} alt="" width={356} height={200} loading="lazy" />
+                    <Image src={video.image} alt="" width={356} height={200} sizes="(max-width: 900px) 100vw, 180px" />
                     <span>{video.kind}</span>
                   </div>
                   <span>
                     <strong>{video.title}</strong>
                     <small>{formatPublishedDate(video.publishedAt)}</small>
                   </span>
-                </a>
+                </Link>
               );
             })}
           </div>

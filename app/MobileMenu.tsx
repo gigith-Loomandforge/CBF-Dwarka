@@ -1,6 +1,7 @@
 "use client";
 
 import type { MouseEvent } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
@@ -30,9 +31,9 @@ export function MobileMenu() {
         {navItems.map((item) => {
           const isActive = item.path ? pathname === item.path || pathname.startsWith(`${item.path}/`) : false;
           return (
-            <a key={item.label} className={isActive ? "active" : undefined} href={item.href} aria-current={isActive ? "page" : undefined} onClick={closeMenu}>
+            <Link key={item.label} className={isActive ? "active" : undefined} href={item.href} aria-current={isActive ? "page" : undefined} onClick={closeMenu}>
               {item.label}
-            </a>
+            </Link>
           );
         })}
       </nav>

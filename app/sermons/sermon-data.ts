@@ -4,9 +4,11 @@ export const youtubeChannelUrl = "https://www.youtube.com/@cbfdwarka";
 const youtubeHandle = "@cbfdwarka";
 const youtubeChannelId = "UCTRZ9Q_bNa8ZgWeNE-2b6wA";
 const youtubeRssFeedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${youtubeChannelId}`;
+const youtubeVideosPageUrl = `https://www.youtube.com/${youtubeHandle}/videos`;
 const maxYouTubeCandidates = 50;
 const maxShortVideoDurationSeconds = 180;
 const defaultRecentVideoLimit = 12;
+const minimumDisplayedSermons = 3;
 
 export type SermonVideo = {
   videoId?: string;
@@ -54,6 +56,14 @@ type YouTubeVideosResponse = {
       duration?: string;
     };
   }>;
+};
+
+type RawYouTubeVideo = {
+  id: string;
+  title: string;
+  description?: string;
+  publishedAt?: string;
+  thumbnail: string;
 };
 
 const fallbackSermons: SermonVideo[] = [
@@ -115,6 +125,132 @@ const getYouTubeDurationSeconds = (duration?: string) => {
 
 const isLongFormYouTubeVideo = (duration?: string) => {
   return getYouTubeDurationSeconds(duration) > maxShortVideoDurationSeconds;
+};
+
+const parseDurationLabelSeconds = (value = "") => {
+  const parts = value
+    .trim()
+    .split(":")
+    .map((part) => Number(part));
+
+  if (!parts.length || parts.some((part) => Number.isNaN(part))) {
+    return 0;
+  }
+
+  return parts.reduce((total, part) => total * 60 + part, 0);
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+};
+
+const getRendererText = (value: unknown): string => {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (!isRecord(value)) {
+    return "";
+  }
+
+  if (typeof value.simpleText === "string") {
+    return value.simpleText;
+  }
+
+  if (Array.isArray(value.runs)) {
+    return value.runs
+      .map((run) => (isRecord(run) && typeof run.text === "string" ? run.text : ""))
+      .join("")
+      .trim();
+  }
+
+  return "";
+};
+
+const getRendererThumbnail = (value: unknown): string => {
+  if (!isRecord(value) || !Array.isArray(value.thumbnails)) {
+    return "";
+  }
+
+  const thumbnails = value.thumbnails.filter(isRecord);
+  const bestThumbnail = thumbnails[thumbnails.length - 1];
+
+  return typeof bestThumbnail?.url === "string" ? bestThumbnail.url : "";
+};
+
+const extractJsonObject = (source: string, marker: string) => {
+  const markerIndex = source.indexOf(marker);
+
+  if (markerIndex === -1) {
+    return "";
+  }
+
+  const startIndex = source.indexOf("{", markerIndex);
+
+  if (startIndex === -1) {
+    return "";
+  }
+
+  let depth = 0;
+  let isInString = false;
+  let isEscaped = false;
+
+  for (let index = startIndex; index < source.length; index += 1) {
+    const char = source[index];
+
+    if (isEscaped) {
+      isEscaped = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      isEscaped = true;
+      continue;
+    }
+
+    if (char === "\"") {
+      isInString = !isInString;
+      continue;
+    }
+
+    if (isInString) {
+      continue;
+    }
+
+    if (char === "{") {
+      depth += 1;
+    }
+
+    if (char === "}") {
+      depth -= 1;
+
+      if (depth === 0) {
+        return source.slice(startIndex, index + 1);
+      }
+    }
+  }
+
+  return "";
+};
+
+const collectVideoRenderers = (value: unknown, renderers: Record<string, unknown>[], seenVideoIds = new Set<string>()) => {
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectVideoRenderers(item, renderers, seenVideoIds));
+    return;
+  }
+
+  if (!isRecord(value)) {
+    return;
+  }
+
+  const renderer = value.videoRenderer || value.gridVideoRenderer;
+
+  if (isRecord(renderer) && typeof renderer.videoId === "string" && !seenVideoIds.has(renderer.videoId)) {
+    seenVideoIds.add(renderer.videoId);
+    renderers.push(renderer);
+  }
+
+  Object.values(value).forEach((item) => collectVideoRenderers(item, renderers, seenVideoIds));
 };
 
 const decodeXmlText = (value = "") => {
@@ -190,15 +326,7 @@ const youtubeApiFetch = async <T,>(path: string, params: Record<string, string>,
   return response.json() as Promise<T>;
 };
 
-const mapYouTubeVideosToSermons = (
-  videos: Array<{
-    id: string;
-    title: string;
-    description?: string;
-    publishedAt?: string;
-    thumbnail: string;
-  }>,
-): SermonVideo[] =>
+const mapYouTubeVideosToSermons = (videos: RawYouTubeVideo[]): SermonVideo[] =>
   videos.map((video, index) => ({
     videoId: video.id,
     image: video.thumbnail,
@@ -211,6 +339,30 @@ const mapYouTubeVideosToSermons = (
     href: getInternalSermonHref(video.id),
     youtubeHref: getYoutubeWatchUrl(video.id),
   }));
+
+const withSequentialNumbers = (videos: SermonVideo[]) =>
+  videos.map((video, index) => ({
+    ...video,
+    number: String(index + 1).padStart(2, "0"),
+  }));
+
+const mergeSermonLists = (primary: SermonVideo[], secondary: SermonVideo[], limit: number) => {
+  const seen = new Set<string>();
+  const merged: SermonVideo[] = [];
+
+  [...primary, ...secondary].forEach((sermon) => {
+    const key = sermon.videoId || sermon.title;
+
+    if (!key || seen.has(key) || merged.length >= limit) {
+      return;
+    }
+
+    seen.add(key);
+    merged.push(sermon);
+  });
+
+  return withSequentialNumbers(merged);
+};
 
 const getYouTubeApiVideos = async (apiKey: string, limit: number): Promise<SermonVideo[]> => {
   const channel = await youtubeApiFetch<YouTubeChannelListResponse>(
@@ -326,15 +478,83 @@ const getYouTubeRssVideos = async (limit: number): Promise<SermonVideo[]> => {
   return mapYouTubeVideosToSermons(recentVideos);
 };
 
+const getYouTubePageVideos = async (limit: number): Promise<SermonVideo[]> => {
+  const response = await fetch(youtubeVideosPageUrl, {
+    headers: {
+      "accept-language": "en-US,en;q=0.9",
+      "user-agent": "Mozilla/5.0 CBF-Dwarka-Website",
+    },
+    next: { revalidate: sermonRevalidate },
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  const html = await response.text();
+  const initialDataJson = extractJsonObject(html, "ytInitialData");
+
+  if (!initialDataJson) {
+    return [];
+  }
+
+  let initialData: unknown;
+
+  try {
+    initialData = JSON.parse(initialDataJson);
+  } catch {
+    return [];
+  }
+
+  const renderers: Record<string, unknown>[] = [];
+  collectVideoRenderers(initialData, renderers);
+
+  const recentVideos: RawYouTubeVideo[] = renderers
+    .map((renderer): RawYouTubeVideo & { isUsable: boolean } => {
+      const id = typeof renderer.videoId === "string" ? renderer.videoId : "";
+      const title = getRendererText(renderer.title);
+      const description = getRendererText(renderer.descriptionSnippet);
+      const publishedAt = getRendererText(renderer.publishedTimeText);
+      const thumbnail = getRendererThumbnail(renderer.thumbnail) || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+      const durationLabel = getRendererText(renderer.lengthText);
+      const durationSeconds = parseDurationLabelSeconds(durationLabel);
+      const looksLikeShort = /#shorts|\bshorts?\b/i.test(`${title} ${description}`);
+
+      return {
+        id,
+        title,
+        description,
+        publishedAt,
+        thumbnail,
+        isUsable: Boolean(id && title && thumbnail) && !looksLikeShort && (!durationLabel || durationSeconds > maxShortVideoDurationSeconds),
+      };
+    })
+    .filter((video) => video.isUsable)
+    .map((video) => ({
+      id: video.id,
+      title: video.title,
+      description: video.description,
+      publishedAt: video.publishedAt,
+      thumbnail: video.thumbnail,
+    }))
+    .slice(0, limit);
+
+  return mapYouTubeVideosToSermons(recentVideos);
+};
+
 export const getRecentSermons = async (limit = defaultRecentVideoLimit): Promise<SermonVideo[]> => {
   const apiKey = process.env.YOUTUBE_API_KEY?.trim().replace(/^["']|["']$/g, "");
+  const minimumCount = Math.min(limit, minimumDisplayedSermons);
+  let sermons: SermonVideo[] = [];
 
   if (apiKey?.startsWith("AIza")) {
     try {
       const apiSermons = await getYouTubeApiVideos(apiKey, limit);
 
-      if (apiSermons.length) {
-        return apiSermons;
+      sermons = mergeSermonLists(sermons, apiSermons, limit);
+
+      if (sermons.length >= minimumCount) {
+        return sermons;
       }
     } catch {
       // Fall through to the public RSS feed when the API key is missing, invalid, or quota-limited.
@@ -344,14 +564,28 @@ export const getRecentSermons = async (limit = defaultRecentVideoLimit): Promise
   try {
     const rssSermons = await getYouTubeRssVideos(limit);
 
-    if (rssSermons.length) {
-      return rssSermons;
+    sermons = mergeSermonLists(sermons, rssSermons, limit);
+
+    if (sermons.length >= minimumCount) {
+      return sermons;
     }
   } catch {
     // Static cards keep the pages populated if YouTube is temporarily unavailable.
   }
 
-  return fallbackSermons.slice(0, limit);
+  try {
+    const pageSermons = await getYouTubePageVideos(limit);
+
+    sermons = mergeSermonLists(sermons, pageSermons, limit);
+
+    if (sermons.length >= minimumCount) {
+      return sermons;
+    }
+  } catch {
+    // If YouTube's public page markup changes, keep the page usable with existing content.
+  }
+
+  return mergeSermonLists(sermons, fallbackSermons, limit);
 };
 
 export const getFeaturedSermons = () => getRecentSermons(3);

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { SiteHeader } from "../SiteHeader";
 
 export const metadata: Metadata = {
@@ -118,7 +120,7 @@ export default function ConnectPage() {
           <div className="connect-plan-copy">
             <h1 id="connect-plan-title">Plan a Visit</h1>
             <p>
-              We'd love to welcome you this Sunday. Find out what to expect, where to go, and how to make the most of your first visit.
+              We&apos;d love to welcome you this Sunday. Find out what to expect, where to go, and how to make the most of your first visit.
             </p>
           </div>
 
@@ -139,7 +141,7 @@ export default function ConnectPage() {
                 </div>
               </div>
             </div>
-            <a className="connect-primary" href="/contact">Plan Your Visit</a>
+            <Link className="connect-primary" href="/contact">Plan Your Visit</Link>
           </aside>
         </div>
       </section>
@@ -150,7 +152,7 @@ export default function ConnectPage() {
           <div className="connect-gathering-grid">
             {gatheringCards.map((card) => (
               <article className="connect-gathering-card" key={card.title}>
-                <img src={card.image} alt="" width={357} height={200} loading="lazy" />
+                <Image src={card.image} alt="" width={900} height={514} sizes="(max-width: 900px) 100vw, 357px" />
                 <div>
                   <h3>{card.title}</h3>
                   <p>{card.body}</p>
@@ -190,7 +192,7 @@ export default function ConnectPage() {
           <div className="connect-annual-grid">
             {annualEvents.map((event) => (
               <article className="connect-annual-card" key={event.title}>
-                <img src={event.image} alt="" width={265} height={331} loading="lazy" />
+                <Image src={event.image} alt="" width={560} height={720} sizes="(max-width: 900px) 50vw, 265px" />
                 <h3>{event.title}</h3>
               </article>
             ))}

@@ -143,7 +143,7 @@ export default function AboutPage() {
           <p className="about-kicker">Our History</p>
           <h1 id="about-history-title">Reformed Tradition</h1>
           <p>
-            Christian Believers Fellowship (CBF) began in July 2007 with eight believers gathering in a living room for worship. Rooted in Reformed tradition, CBF evolved into a bilingual church offering both English and Hindi services, providing a spiritual home for those seeking a deeper understanding of God's Word and a transformed way of living out their faith. Starting with a small group of families, CBF grew steadily, eventually relocating its gatherings to Mount Carmel School, Dwarka. With a commitment to biblical preaching, sacramental worship, and compassionate service, CBF remains a thriving community of faith, welcoming individuals to join in their pursuit of knowing God and making a meaningful impact in the world.
+            Christian Believers Fellowship (CBF) began in July 2007 with eight believers gathering in a living room for worship. Rooted in Reformed tradition, CBF evolved into a bilingual church offering both English and Hindi services, providing a spiritual home for those seeking a deeper understanding of God&apos;s Word and a transformed way of living out their faith. Starting with a small group of families, CBF grew steadily, eventually relocating its gatherings to Mount Carmel School, Dwarka. With a commitment to biblical preaching, sacramental worship, and compassionate service, CBF remains a thriving community of faith, welcoming individuals to join in their pursuit of knowing God and making a meaningful impact in the world.
           </p>
         </div>
         <AboutCarousel />
