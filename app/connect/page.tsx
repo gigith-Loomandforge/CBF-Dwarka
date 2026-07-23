@@ -95,18 +95,12 @@ const annualEvents = [
   {
     title: "Christmas Service",
     image: "/assets/connect-christmas-service.png",
+    href: "/christmas-service",
   },
   {
     title: "Easter Service",
     image: "/assets/connect-easter-service.png",
-  },
-  {
-    title: "Thanksgiving Service",
-    image: "/assets/connect-thanksgiving-service.png",
-  },
-  {
-    title: "Church Offsite",
-    image: "/assets/connect-church-offsite.png",
+    href: "/easter-service",
   },
 ];
 
@@ -190,12 +184,19 @@ export default function ConnectPage() {
             <p>Special gatherings that mark the seasons of our faith journey.</p>
           </div>
           <div className="connect-annual-grid">
-            {annualEvents.map((event) => (
-              <article className="connect-annual-card" key={event.title}>
-                <Image src={event.image} alt="" width={560} height={720} sizes="(max-width: 900px) 50vw, 265px" />
-                <h3>{event.title}</h3>
-              </article>
-            ))}
+            {annualEvents.map((event) =>
+              event.href ? (
+                <Link className="connect-annual-card connect-annual-link" href={event.href} key={event.title}>
+                  <Image src={event.image} alt="" width={560} height={720} sizes="(max-width: 900px) 50vw, 265px" />
+                  <h3>{event.title}</h3>
+                </Link>
+              ) : (
+                <article className="connect-annual-card" key={event.title}>
+                  <Image src={event.image} alt="" width={560} height={720} sizes="(max-width: 900px) 50vw, 265px" />
+                  <h3>{event.title}</h3>
+                </article>
+              ),
+            )}
           </div>
         </div>
       </section>

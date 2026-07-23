@@ -55,3 +55,59 @@ export const offsitePageQuery = groq`*[
   "heroImageUrl": heroImage.asset->url,
   "heroImageAlt": coalesce(heroImage.alt, title)
 }`;
+
+export const easterServicePageQuery = groq`*[
+  _type == "easterServicePage" &&
+  slug.current == "easter-service"
+] | order(_updatedAt desc)[0] {
+  _id,
+  title,
+  eyebrow,
+  summary,
+  serviceDateTime,
+  scheduleLabel,
+  locationName,
+  locationAddress,
+  mapUrl,
+  metaTitle,
+  metaDescription,
+  details[] {
+    label,
+    value,
+    description
+  },
+  body[] {
+    heading,
+    text
+  },
+  "heroImageUrl": heroImage.asset->url,
+  "heroImageAlt": coalesce(heroImage.alt, title)
+}`;
+
+export const christmasServicePageQuery = groq`*[
+  _type == "christmasServicePage" &&
+  slug.current == "christmas-service"
+] | order(_updatedAt desc)[0] {
+  _id,
+  title,
+  eyebrow,
+  summary,
+  serviceDateTime,
+  scheduleLabel,
+  locationName,
+  locationAddress,
+  mapUrl,
+  metaTitle,
+  metaDescription,
+  details[] {
+    label,
+    value,
+    description
+  },
+  body[] {
+    heading,
+    text
+  },
+  "heroImageUrl": heroImage.asset->url,
+  "heroImageAlt": coalesce(heroImage.alt, title)
+}`;

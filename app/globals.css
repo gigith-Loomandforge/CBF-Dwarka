@@ -1352,12 +1352,23 @@ p {
 }
 
 .connect-annual-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
 }
 
 .connect-annual-card {
+  display: block;
   min-width: 0;
+}
+
+.connect-annual-link {
+  transition: color 180ms ease, transform 180ms var(--ease-out);
+}
+
+.connect-annual-link:hover,
+.connect-annual-link:focus-visible {
+  color: #a66e4e;
+  transform: translateY(-2px);
 }
 
 .connect-annual-card img {
@@ -1380,6 +1391,86 @@ p {
   margin-top: 16px;
   font-size: 18px;
   line-height: 1.3;
+}
+
+.easter-service-page {
+  background: linear-gradient(180deg, #fff 0%, #fbfbf3 48%, #fff 100%);
+}
+
+.easter-service-hero .about-kicker,
+.easter-service-details span {
+  color: #6f8f4d;
+}
+
+.easter-service-media::after {
+  z-index: 1;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255, 240, 178, 0.34), transparent 28%),
+    linear-gradient(145deg, rgba(255, 247, 217, 0.18), rgba(255, 255, 255, 0) 48%),
+    linear-gradient(180deg, rgba(27, 27, 27, 0.03), rgba(27, 27, 27, 0.12));
+}
+
+.easter-light,
+.easter-light::before,
+.easter-light::after {
+  position: absolute;
+  pointer-events: none;
+}
+
+.easter-light {
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 22% 18%, rgba(255, 246, 207, 0.48), transparent 24%),
+    radial-gradient(circle at 80% 78%, rgba(166, 196, 132, 0.2), transparent 28%);
+}
+
+.easter-light::before,
+.easter-light::after {
+  content: "";
+  inset: -18%;
+  background-image:
+    radial-gradient(circle, rgba(255, 240, 178, 0.58) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.42) 0 1px, transparent 1.6px);
+  background-position: 0 0, 58px 86px;
+  background-size: 142px 172px, 214px 238px;
+  opacity: 0.42;
+  animation: easter-light-drift 30s linear infinite;
+}
+
+.easter-light::after {
+  background-size: 102px 132px, 178px 204px;
+  opacity: 0.3;
+  animation-duration: 42s;
+  animation-delay: -14s;
+}
+
+@keyframes easter-light-drift {
+  from {
+    transform: translate3d(-2%, 3%, 0);
+  }
+
+  to {
+    transform: translate3d(4%, -7%, 0);
+  }
+}
+
+.christmas-service-page {
+  background: linear-gradient(180deg, #fff 0%, #fbfaf7 48%, #fff 100%);
+}
+
+.christmas-service-hero .about-kicker,
+.christmas-service-details span {
+  color: #b63a34;
+}
+
+.christmas-service-media::after {
+  z-index: 1;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255, 240, 178, 0.22), transparent 28%),
+    linear-gradient(145deg, rgba(182, 58, 52, 0.1), rgba(255, 255, 255, 0) 48%),
+    linear-gradient(180deg, rgba(27, 27, 27, 0.03), rgba(27, 27, 27, 0.14));
 }
 
 .connect-plan-copy,
@@ -3666,6 +3757,11 @@ p {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .easter-light::before,
+  .easter-light::after {
+    animation: none !important;
   }
 
   *,
