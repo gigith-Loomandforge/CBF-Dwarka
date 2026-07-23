@@ -29,3 +29,29 @@ export const homepageQuery = groq`{
     ctaHref
   }
 }`;
+
+export const offsitePageQuery = groq`*[
+  _type == "offsitePage" &&
+  slug.current == "offsite"
+] | order(_updatedAt desc)[0] {
+  _id,
+  title,
+  eyebrow,
+  summary,
+  dateTime,
+  scheduleLabel,
+  locationName,
+  locationAddress,
+  mapUrl,
+  rsvpEnabled,
+  rsvpTitle,
+  rsvpIntro,
+  metaTitle,
+  metaDescription,
+  body[] {
+    heading,
+    text
+  },
+  "heroImageUrl": heroImage.asset->url,
+  "heroImageAlt": coalesce(heroImage.alt, title)
+}`;

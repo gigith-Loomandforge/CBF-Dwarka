@@ -232,8 +232,8 @@ export default function AboutPage() {
           <p>© 2026 CBFDwarka. All rights reserved.</p>
           <p>Made with love by people at <a href="https://www.loomandforge.com/">Loom &amp; Forge</a></p>
           <nav aria-label="Legal">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms &amp; Conditions</a>
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/terms">Terms &amp; Conditions</a>
           </nav>
         </div>
       </footer>
