@@ -32,12 +32,17 @@ export const homepageQuery = groq`{
 
 export const offsitePageQuery = groq`*[
   _type == "offsitePage" &&
-  slug.current == "offsite"
-] | order(_updatedAt desc)[0] {
+  (
+    isActive == true ||
+    (!defined(isActive) && slug.current == "offsite")
+  )
+] | order(isActive desc, eventYear desc, _updatedAt desc)[0] {
   _id,
   title,
   eyebrow,
   summary,
+  eventYear,
+  isActive,
   dateTime,
   scheduleLabel,
   locationName,

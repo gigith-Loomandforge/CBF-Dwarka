@@ -95,18 +95,44 @@ export async function POST(request: Request) {
   }
 
   const eventId = typeof payload.eventId === "string" && payload.eventId.trim() ? payload.eventId.trim() : null;
+
+  if (!eventId) {
+    return NextResponse.json({ message: "This event is not available for RSVP." }, { status: 400 });
+  }
+
+  let event: { _id: string; isActive?: boolean; rsvpEnabled?: boolean } | null = null;
+
+  try {
+    event = await writeClient.fetch(
+      `*[_type == "offsitePage" && _id == $eventId][0]{
+        _id,
+        isActive,
+        rsvpEnabled
+      }`,
+      { eventId },
+    );
+  } catch {
+    return NextResponse.json(
+      { message: "We could not confirm the event status. Please try again." },
+      { status: 503 },
+    );
+  }
+
+  if (!event || event.isActive !== true || event.rsvpEnabled !== true) {
+    return NextResponse.json(
+      { message: "RSVP is closed for this event." },
+      { status: 409 },
+    );
+  }
+
   const partySize = 1 + additionalMembers.length;
 
   await writeClient.create({
     _type: "offsiteRsvp",
-    ...(eventId
-      ? {
-          event: {
-            _type: "reference",
-            _ref: eventId,
-          },
-        }
-      : {}),
+    event: {
+      _type: "reference",
+      _ref: eventId,
+    },
     primaryName: primaryResult.member.name,
     primaryAge: primaryResult.member.age,
     additionalMembers,

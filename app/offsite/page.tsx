@@ -19,6 +19,8 @@ type OffsitePageData = {
   eyebrow?: string;
   summary?: string;
   dateTime?: string;
+  eventYear?: number;
+  isActive?: boolean;
   scheduleLabel?: string;
   locationName?: string;
   locationAddress?: string;
@@ -40,6 +42,8 @@ const fallbackOffsitePage: Required<Omit<OffsitePageData, "_id" | "dateTime" | "
   summary:
     "A dedicated time for the CBF Dwarka church family to gather, share fellowship, and spend meaningful time together outside the regular Sunday rhythm.",
   dateTime: undefined,
+  eventYear: new Date().getFullYear(),
+  isActive: false,
   scheduleLabel: "October 1st - 4th, Thursday - Sunday",
   locationName: "Himalayan Torchbearers",
   locationAddress: "Dehradun, Uttarakhand",
@@ -108,6 +112,7 @@ export default async function OffsitePage() {
   const formattedDate = formatEventDate(page.dateTime);
   const rsvpTitle = page.rsvpTitle || fallbackOffsitePage.rsvpTitle;
   const rsvpIntro = page.rsvpIntro || fallbackOffsitePage.rsvpIntro;
+  const rsvpIsOpen = Boolean(page._id && page.isActive && page.rsvpEnabled);
 
   return (
     <main className="offsite-page">
@@ -119,7 +124,7 @@ export default async function OffsitePage() {
           <h1 id="offsite-title">{page.title}</h1>
           <p>{page.summary}</p>
           <div className="offsite-hero-actions">
-            {page.rsvpEnabled ? <a className="offsite-primary-button" href="#rsvp">RSVP Now</a> : null}
+            {rsvpIsOpen ? <a className="offsite-primary-button" href="#rsvp">RSVP Now</a> : null}
             {page.mapUrl ? (
               <a className="offsite-secondary-button" href={page.mapUrl} target="_blank" rel="noreferrer">
                 View Location
@@ -133,6 +138,7 @@ export default async function OffsitePage() {
             <Image
               alt={page.heroImageAlt || page.title || "CBF Dwarka offsite"}
               fill
+              priority
               sizes="(max-width: 900px) 100vw, 50vw"
               src={page.heroImageUrl}
             />
@@ -158,7 +164,7 @@ export default async function OffsitePage() {
         </article>
         <article>
           <span>RSVP</span>
-          <strong>{page.rsvpEnabled ? "Open" : "Closed"}</strong>
+          <strong>{rsvpIsOpen ? "Open" : "Closed"}</strong>
           <p>Attendance details are stored privately for the CBF Dwarka team.</p>
         </article>
       </section>
@@ -175,7 +181,7 @@ export default async function OffsitePage() {
       ) : null}
 
       <section className="offsite-rsvp-section" id="rsvp" aria-labelledby="offsite-rsvp-title">
-        {page.rsvpEnabled ? (
+        {rsvpIsOpen ? (
           <OffsiteRsvpForm eventId={page._id} intro={rsvpIntro} title={rsvpTitle} />
         ) : (
           <div className="offsite-rsvp-closed">

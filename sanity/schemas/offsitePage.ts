@@ -1,4 +1,5 @@
 import { defineField, defineType } from "sanity";
+import { apiVersion } from "../env";
 
 const urlValidation = (value?: string) => {
   if (!value || value.startsWith("/")) {
@@ -15,7 +16,7 @@ const urlValidation = (value?: string) => {
 
 export const offsitePageType = defineType({
   name: "offsitePage",
-  title: "Offsite Page",
+  title: "Offsite Event",
   type: "document",
   groups: [
     { name: "hero", title: "Hero", default: true },
@@ -81,6 +82,51 @@ export const offsitePageType = defineType({
       title: "Event date/time",
       type: "datetime",
       group: "details",
+    }),
+    defineField({
+      name: "eventYear",
+      title: "Event year",
+      type: "number",
+      group: "details",
+      initialValue: () => new Date().getFullYear(),
+      validation: (rule) => rule.required().integer().min(2020).max(2100),
+    }),
+    defineField({
+      name: "isActive",
+      title: "Active offsite event",
+      type: "boolean",
+      group: "details",
+      initialValue: false,
+      description:
+        "The website uses the one active event at /offsite. Archive a previous event by turning this off before activating a new year.",
+      validation: (rule) =>
+        rule.custom(async (isActive, context) => {
+          if (isActive !== true || !context.document?._id) {
+            return true;
+          }
+
+          const publishedId = context.document._id.replace(/^drafts\./, "");
+          const draftId = `drafts.${publishedId}`;
+
+          try {
+            const activeEventCount = await context
+              .getClient({ apiVersion })
+              .fetch<number>(
+                `count(*[
+                  _type == "offsitePage" &&
+                  isActive == true &&
+                  !(_id in [$publishedId, $draftId])
+                ])`,
+                { publishedId, draftId },
+              );
+
+            return activeEventCount === 0
+              ? true
+              : "Another offsite event is already active. Archive it before activating this event.";
+          } catch {
+            return true;
+          }
+        }),
     }),
     defineField({
       name: "scheduleLabel",
@@ -181,11 +227,29 @@ export const offsitePageType = defineType({
       validation: (rule) => rule.max(160),
     }),
   ],
+  orderings: [
+    {
+      title: "Event year, newest first",
+      name: "eventYearDesc",
+      by: [{ field: "eventYear", direction: "desc" }],
+    },
+  ],
   preview: {
     select: {
       title: "title",
-      subtitle: "scheduleLabel",
+      eventYear: "eventYear",
+      isActive: "isActive",
+      scheduleLabel: "scheduleLabel",
       media: "heroImage",
+    },
+    prepare({ title, eventYear, isActive, scheduleLabel }) {
+      const state = isActive ? "Active" : "Archived";
+      const year = eventYear ? String(eventYear) : "Year not set";
+
+      return {
+        title: `${title || "CBF Offsite"} - ${year}`,
+        subtitle: `${state}${scheduleLabel ? ` - ${scheduleLabel}` : ""}`,
+      };
     },
   },
 });

@@ -11,6 +11,7 @@ export const offsiteRsvpType = defineType({
       type: "reference",
       to: [{ type: "offsitePage" }],
       readOnly: true,
+      validation: (rule) => rule.required(),
     }),
     defineField({
       name: "primaryName",
@@ -106,13 +107,18 @@ export const offsiteRsvpType = defineType({
       title: "primaryName",
       partySize: "partySize",
       submittedAt: "submittedAt",
+      eventTitle: "event.title",
+      eventYear: "event.eventYear",
     },
-    prepare({ title, partySize, submittedAt }) {
+    prepare({ title, partySize, submittedAt, eventTitle, eventYear }) {
       const members = partySize === 1 ? "1 attendee" : `${partySize || 1} attendees`;
+      const event = eventTitle
+        ? `${eventTitle}${eventYear ? ` ${eventYear}` : ""}`
+        : "Event not linked";
 
       return {
         title,
-        subtitle: `${members}${submittedAt ? ` - ${new Date(submittedAt).toLocaleDateString("en-IN")}` : ""}`,
+        subtitle: `${event} - ${members}${submittedAt ? ` - ${new Date(submittedAt).toLocaleDateString("en-IN")}` : ""}`,
       };
     },
   },

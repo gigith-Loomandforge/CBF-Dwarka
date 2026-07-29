@@ -18,7 +18,7 @@ export default function PrivacyPage() {
       <section className="legal-hero">
         <p className="about-kicker">Privacy Policy</p>
         <h1>How we handle information shared with CBF Dwarka.</h1>
-        <p>Last updated: July 23, 2026</p>
+        <p>Last updated: July 29, 2026</p>
       </section>
 
       <section className="legal-content">
@@ -38,6 +38,12 @@ export default function PrivacyPage() {
           <h2>Where it is stored</h2>
           <p>
             Event RSVP information is stored in Sanity Studio for access by the CBF Dwarka team. Ages and complete RSVP details are not displayed publicly on the website.
+          </p>
+        </article>
+        <article>
+          <h2>How long we keep it</h2>
+          <p>
+            RSVP records may be retained with the relevant event year for event administration and internal record-keeping. You may ask us to correct or delete your RSVP information by contacting CBF Dwarka.
           </p>
         </article>
         <article>
