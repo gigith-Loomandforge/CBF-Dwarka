@@ -3036,6 +3036,16 @@ p {
   object-fit: cover;
 }
 
+.offsite-event-page .offsite-hero-media {
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  background: #f3f3ef;
+}
+
+.offsite-event-page .offsite-hero-media img {
+  object-fit: contain;
+}
+
 .offsite-hero-media::after {
   content: "";
   position: absolute;

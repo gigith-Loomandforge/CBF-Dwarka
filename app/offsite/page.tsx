@@ -115,7 +115,7 @@ export default async function OffsitePage() {
   const rsvpIsOpen = Boolean(page._id && page.isActive && page.rsvpEnabled);
 
   return (
-    <main className="offsite-page">
+    <main className="offsite-page offsite-event-page">
       <SiteHeader />
 
       <section className="offsite-hero" aria-labelledby="offsite-title">
