@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
-import { writeClient } from "../../../sanity/lib/client";
+import { client, writeClient } from "../../../sanity/lib/client";
+import {
+  getRsvpStorageMode,
+  isGoogleSheetsConfigured,
+  sendRsvpToGoogleSheets,
+  storageUsesGoogleSheets,
+  storageUsesSanity,
+} from "./google-sheets";
 
 type RsvpMemberInput = {
   name?: unknown;
@@ -36,9 +43,31 @@ const validateMember = (member: RsvpMemberInput, label: string) => {
 };
 
 export async function POST(request: Request) {
-  if (!writeClient) {
+  let storageMode;
+
+  try {
+    storageMode = getRsvpStorageMode();
+  } catch (error) {
+    console.error("Invalid RSVP storage configuration.", error);
+    return NextResponse.json(
+      { message: "RSVP storage is not configured correctly. Please contact CBF Dwarka directly." },
+      { status: 503 },
+    );
+  }
+
+  const shouldWriteToSanity = storageUsesSanity(storageMode);
+  const shouldWriteToGoogleSheets = storageUsesGoogleSheets(storageMode);
+
+  if (!client || (shouldWriteToSanity && !writeClient)) {
     return NextResponse.json(
       { message: "RSVP is not configured yet. Please contact CBF Dwarka directly." },
+      { status: 503 },
+    );
+  }
+
+  if (shouldWriteToGoogleSheets && !isGoogleSheetsConfigured()) {
+    return NextResponse.json(
+      { message: "RSVP storage is not configured yet. Please contact CBF Dwarka directly." },
       { status: 503 },
     );
   }
@@ -100,12 +129,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "This event is not available for RSVP." }, { status: 400 });
   }
 
-  let event: { _id: string; isActive?: boolean; rsvpEnabled?: boolean } | null = null;
+  let event: {
+    _id: string;
+    title?: string;
+    eventYear?: number;
+    isActive?: boolean;
+    rsvpEnabled?: boolean;
+  } | null = null;
 
   try {
-    event = await writeClient.fetch(
+    event = await client.fetch(
       `*[_type == "offsitePage" && _id == $eventId][0]{
         _id,
+        title,
+        eventYear,
         isActive,
         rsvpEnabled
       }`,
@@ -126,21 +163,74 @@ export async function POST(request: Request) {
   }
 
   const partySize = 1 + additionalMembers.length;
+  const submissionId = crypto.randomUUID();
+  const submittedAt = new Date().toISOString();
+  const eventYear = event.eventYear ?? new Date(submittedAt).getFullYear();
 
-  await writeClient.create({
-    _type: "offsiteRsvp",
-    event: {
-      _type: "reference",
-      _ref: eventId,
-    },
-    primaryName: primaryResult.member.name,
-    primaryAge: primaryResult.member.age,
-    additionalMembers,
-    partySize,
-    privacyAccepted: true,
-    submittedAt: new Date().toISOString(),
-    source: "website",
-  });
+  if (shouldWriteToGoogleSheets) {
+    try {
+      await sendRsvpToGoogleSheets({
+        submissionId,
+        submittedAt,
+        eventId,
+        eventTitle: event.title || "CBF Offsite",
+        eventYear,
+        partySize,
+        attendees: [
+          {
+            attendeeType: "Primary attendee",
+            name: primaryResult.member.name,
+            age: primaryResult.member.age,
+          },
+          ...additionalMembers.map((member) => ({
+            attendeeType: "Additional member" as const,
+            name: member.name,
+            age: member.age,
+          })),
+        ],
+        privacyAccepted: true,
+        source: "website",
+      });
+    } catch (error) {
+      console.error(
+        "Google Sheets RSVP write failed.",
+        error instanceof Error ? error.message : "Unknown error",
+      );
+      return NextResponse.json(
+        { message: "We could not save your RSVP right now. Please try again." },
+        { status: 503 },
+      );
+    }
+  }
+
+  if (shouldWriteToSanity && writeClient) {
+    try {
+      await writeClient.createIfNotExists({
+        _id: `offsiteRsvp-${submissionId}`,
+        _type: "offsiteRsvp",
+        event: {
+          _type: "reference",
+          _ref: eventId,
+        },
+        primaryName: primaryResult.member.name,
+        primaryAge: primaryResult.member.age,
+        additionalMembers,
+        partySize,
+        privacyAccepted: true,
+        submittedAt,
+        source: "website",
+      });
+    } catch (error) {
+      console.error(
+        "Sanity RSVP write failed.",
+        error instanceof Error ? error.message : "Unknown error",
+      );
+      return NextResponse.json(
+        { message: "We could not save your RSVP right now. Please try again." },
+        { status: 503 },
+      );
+    }
+  }
 
   return NextResponse.json({
     message: "RSVP received.",
