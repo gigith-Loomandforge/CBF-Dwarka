@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "../SiteHeader";
+import { RsvpForm } from "../RsvpForm";
 import { client } from "../../sanity/lib/client";
 import { easterServicePageQuery } from "../../sanity/lib/queries";
 
@@ -23,11 +24,15 @@ type EasterServicePageData = {
   title?: string;
   eyebrow?: string;
   summary?: string;
+  eventYear?: number;
   serviceDateTime?: string;
   scheduleLabel?: string;
   locationName?: string;
   locationAddress?: string;
   mapUrl?: string;
+  rsvpEnabled?: boolean;
+  rsvpTitle?: string;
+  rsvpIntro?: string;
   metaTitle?: string;
   metaDescription?: string;
   details?: EasterServiceDetail[];
@@ -47,11 +52,15 @@ const fallbackEasterServicePage: Required<Omit<EasterServicePageData, "_id" | "s
   eyebrow: "Resurrection Sunday",
   summary:
     "Join CBF Dwarka for Easter Service as we celebrate the resurrection of Jesus Christ through worship, prayer, Scripture, and fellowship.",
+  eventYear: new Date().getFullYear(),
   serviceDateTime: undefined,
   scheduleLabel: "Easter Sunday at 10:30 AM",
   locationName: "Mount Carmel School",
   locationAddress: churchAddress,
   mapUrl: "https://maps.app.goo.gl/JpFGJdPFxPP77a5u7?g_st=ic",
+  rsvpEnabled: false,
+  rsvpTitle: "Confirm your attendance",
+  rsvpIntro: "Add your details and include any family members who will attend with you.",
   metaTitle: "Easter Service | CBF Dwarka",
   metaDescription: "Join CBF Dwarka for Easter Service in Dwarka, New Delhi.",
   details: [
@@ -141,6 +150,9 @@ export default async function EasterServicePage() {
   const page = await getEasterServicePage();
   const formattedDate = formatServiceDate(page.serviceDateTime);
   const heroImage = page.heroImageUrl || "/assets/connect-easter-service.png";
+  const rsvpTitle = page.rsvpTitle || fallbackEasterServicePage.rsvpTitle;
+  const rsvpIntro = page.rsvpIntro || fallbackEasterServicePage.rsvpIntro;
+  const rsvpIsOpen = Boolean(page._id && page.rsvpEnabled);
 
   return (
     <main className="offsite-page easter-service-page">
@@ -152,8 +164,9 @@ export default async function EasterServicePage() {
           <h1 id="easter-service-title">{page.title}</h1>
           <p>{page.summary}</p>
           <div className="offsite-hero-actions">
+            {rsvpIsOpen ? <a className="offsite-primary-button" href="#rsvp">RSVP Now</a> : null}
             {page.mapUrl ? (
-              <a className="offsite-primary-button" href={page.mapUrl} target="_blank" rel="noreferrer">
+              <a className={rsvpIsOpen ? "offsite-secondary-button" : "offsite-primary-button"} href={page.mapUrl} target="_blank" rel="noreferrer">
                 Get Directions
               </a>
             ) : null}
@@ -190,6 +203,24 @@ export default async function EasterServicePage() {
             <p>{section.text}</p>
           </article>
         ))}
+      </section>
+
+      <section className="offsite-rsvp-section" id="rsvp" aria-labelledby="easter-rsvp-title">
+        {rsvpIsOpen ? (
+          <RsvpForm
+            eventId={page._id}
+            eventType="easter"
+            headingId="easter-rsvp-title"
+            intro={rsvpIntro}
+            title={rsvpTitle}
+          />
+        ) : (
+          <div className="offsite-rsvp-closed">
+            <p className="about-kicker">RSVP</p>
+            <h2 id="easter-rsvp-title">RSVP is currently closed.</h2>
+            <p>Please contact CBF Dwarka if you need help with this service.</p>
+          </div>
+        )}
       </section>
 
       <footer className="footer offsite-footer" id="contact">

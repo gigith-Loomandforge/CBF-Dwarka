@@ -1,6 +1,11 @@
 const SECRET_PROPERTY = "RSVP_WEBHOOK_SECRET";
 const SPREADSHEET_PROPERTY_PREFIX = "RSVP_SPREADSHEET_";
 const SHEET_NAME = "Attendees";
+const EVENT_NAMES = {
+  offsite: "CBF Offsite",
+  easter: "CBF Easter Service",
+  christmas: "CBF Christmas Service",
+};
 const HEADERS = [
   "Submission ID",
   "Submitted at",
@@ -42,7 +47,7 @@ function doPost(event) {
 
     try {
       const spreadsheet = getOrCreateSpreadsheet_(
-        normalized.eventTitle,
+        normalized.eventType,
         normalized.eventYear,
       );
       const sheet = spreadsheet.getSheetByName(SHEET_NAME);
@@ -93,9 +98,10 @@ function doPost(event) {
   }
 }
 
-function getOrCreateSpreadsheet_(eventTitle, eventYear) {
+function getOrCreateSpreadsheet_(eventType, eventYear) {
   const properties = PropertiesService.getScriptProperties();
-  const propertyName = SPREADSHEET_PROPERTY_PREFIX + eventYear;
+  const propertyName =
+    SPREADSHEET_PROPERTY_PREFIX + eventType.toUpperCase() + "_" + eventYear;
   const existingId = properties.getProperty(propertyName);
 
   if (existingId) {
@@ -106,13 +112,24 @@ function getOrCreateSpreadsheet_(eventTitle, eventYear) {
     }
   }
 
-  const safeTitle =
-    String(eventTitle || "CBF Offsite")
-      .replace(/[\\/:*?"<>|#%{}\[\]]/g, "")
-      .trim()
-      .slice(0, 80) || "CBF Offsite";
+  // Reuse the sheet created by the original year-only Offsite integration.
+  if (eventType === "offsite") {
+    const legacyPropertyName = SPREADSHEET_PROPERTY_PREFIX + eventYear;
+    const legacyId = properties.getProperty(legacyPropertyName);
+
+    if (legacyId) {
+      try {
+        const legacySpreadsheet = SpreadsheetApp.openById(legacyId);
+        properties.setProperty(propertyName, legacyId);
+        return legacySpreadsheet;
+      } catch (error) {
+        properties.deleteProperty(legacyPropertyName);
+      }
+    }
+  }
+
   const spreadsheet = SpreadsheetApp.create(
-    safeTitle + " RSVP " + eventYear,
+    EVENT_NAMES[eventType] + " RSVP " + eventYear,
   );
   const sheet = spreadsheet.getSheets()[0];
 
@@ -149,6 +166,7 @@ function validatePayload_(payload) {
   const partySize = Number(payload.partySize);
   const attendees = Array.isArray(payload.attendees) ? payload.attendees : [];
   const eventId = String(payload.eventId || "").trim();
+  const eventType = String(payload.eventType || "").trim().toLowerCase();
 
   if (!/^[a-f0-9-]{36}$/i.test(String(payload.submissionId || ""))) {
     throw new Error("Invalid submission ID");
@@ -156,6 +174,10 @@ function validatePayload_(payload) {
 
   if (!eventId || eventId.length > 120) {
     throw new Error("Invalid event ID");
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(EVENT_NAMES, eventType)) {
+    throw new Error("Invalid event type");
   }
 
   if (payload.privacyAccepted !== true) {
@@ -217,6 +239,7 @@ function validatePayload_(payload) {
     submittedAt: submittedAt.toISOString(),
     eventTitle: String(payload.eventTitle || "CBF Offsite").trim().slice(0, 120),
     eventId: eventId,
+    eventType: eventType,
     eventYear: eventYear,
     primaryName: normalizedAttendees[0].name,
     partySize: partySize,

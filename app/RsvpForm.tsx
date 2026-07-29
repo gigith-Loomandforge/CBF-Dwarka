@@ -15,8 +15,12 @@ type SubmitState =
   | { status: "success"; message: string }
   | { status: "error"; message: string };
 
-type OffsiteRsvpFormProps = {
+export type RsvpEventType = "offsite" | "easter" | "christmas";
+
+type RsvpFormProps = {
   eventId?: string;
+  eventType: RsvpEventType;
+  headingId: string;
   title: string;
   intro: string;
 };
@@ -27,7 +31,7 @@ const createMember = (id: number): AdditionalMember => ({
   age: "",
 });
 
-export function OffsiteRsvpForm({ eventId, title, intro }: OffsiteRsvpFormProps) {
+export function RsvpForm({ eventId, eventType, headingId, title, intro }: RsvpFormProps) {
   const memberId = useRef(0);
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
@@ -64,13 +68,14 @@ export function OffsiteRsvpForm({ eventId, title, intro }: OffsiteRsvpFormProps)
     setSubmitState({ status: "loading", message: "Submitting your RSVP..." });
 
     try {
-      const response = await fetch("/api/offsite-rsvp", {
+      const response = await fetch("/api/rsvp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           eventId,
+          eventType,
           primary: { name, age },
           additionalMembers: members.map((member) => ({ name: member.name, age: member.age })),
           privacyAccepted,
@@ -99,7 +104,7 @@ export function OffsiteRsvpForm({ eventId, title, intro }: OffsiteRsvpFormProps)
     <form className="offsite-rsvp-form" onSubmit={handleSubmit}>
       <div className="offsite-form-header">
         <p className="about-kicker">RSVP</p>
-        <h2 id="offsite-rsvp-title">{title}</h2>
+        <h2 id={headingId}>{title}</h2>
         <p>{intro}</p>
       </div>
 

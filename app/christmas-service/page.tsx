@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "../SiteHeader";
+import { RsvpForm } from "../RsvpForm";
 import { client } from "../../sanity/lib/client";
 import { christmasServicePageQuery } from "../../sanity/lib/queries";
 
@@ -23,11 +24,15 @@ type ChristmasServicePageData = {
   title?: string;
   eyebrow?: string;
   summary?: string;
+  eventYear?: number;
   serviceDateTime?: string;
   scheduleLabel?: string;
   locationName?: string;
   locationAddress?: string;
   mapUrl?: string;
+  rsvpEnabled?: boolean;
+  rsvpTitle?: string;
+  rsvpIntro?: string;
   metaTitle?: string;
   metaDescription?: string;
   details?: ChristmasServiceDetail[];
@@ -47,11 +52,15 @@ const fallbackChristmasServicePage: Required<Omit<ChristmasServicePageData, "_id
   eyebrow: "Christmas Celebration",
   summary:
     "Join CBF Dwarka for Christmas Service as we gather to worship Jesus Christ and remember the joy, hope, and peace of his coming.",
+  eventYear: new Date().getFullYear(),
   serviceDateTime: undefined,
   scheduleLabel: "Christmas Service at 10:30 AM",
   locationName: "Mount Carmel School",
   locationAddress: churchAddress,
   mapUrl: "https://maps.app.goo.gl/JpFGJdPFxPP77a5u7?g_st=ic",
+  rsvpEnabled: false,
+  rsvpTitle: "Confirm your attendance",
+  rsvpIntro: "Add your details and include any family members who will attend with you.",
   metaTitle: "Christmas Service | CBF Dwarka",
   metaDescription: "Join CBF Dwarka for Christmas Service in Dwarka, New Delhi.",
   details: [
@@ -141,6 +150,9 @@ export default async function ChristmasServicePage() {
   const page = await getChristmasServicePage();
   const formattedDate = formatServiceDate(page.serviceDateTime);
   const heroImage = page.heroImageUrl || "/assets/connect-christmas-service.png";
+  const rsvpTitle = page.rsvpTitle || fallbackChristmasServicePage.rsvpTitle;
+  const rsvpIntro = page.rsvpIntro || fallbackChristmasServicePage.rsvpIntro;
+  const rsvpIsOpen = Boolean(page._id && page.rsvpEnabled);
 
   return (
     <main className="offsite-page christmas-service-page">
@@ -152,8 +164,9 @@ export default async function ChristmasServicePage() {
           <h1 id="christmas-service-title">{page.title}</h1>
           <p>{page.summary}</p>
           <div className="offsite-hero-actions">
+            {rsvpIsOpen ? <a className="offsite-primary-button" href="#rsvp">RSVP Now</a> : null}
             {page.mapUrl ? (
-              <a className="offsite-primary-button" href={page.mapUrl} target="_blank" rel="noreferrer">
+              <a className={rsvpIsOpen ? "offsite-secondary-button" : "offsite-primary-button"} href={page.mapUrl} target="_blank" rel="noreferrer">
                 Get Directions
               </a>
             ) : null}
@@ -189,6 +202,24 @@ export default async function ChristmasServicePage() {
             <p>{section.text}</p>
           </article>
         ))}
+      </section>
+
+      <section className="offsite-rsvp-section" id="rsvp" aria-labelledby="christmas-rsvp-title">
+        {rsvpIsOpen ? (
+          <RsvpForm
+            eventId={page._id}
+            eventType="christmas"
+            headingId="christmas-rsvp-title"
+            intro={rsvpIntro}
+            title={rsvpTitle}
+          />
+        ) : (
+          <div className="offsite-rsvp-closed">
+            <p className="about-kicker">RSVP</p>
+            <h2 id="christmas-rsvp-title">RSVP is currently closed.</h2>
+            <p>Please contact CBF Dwarka if you need help with this service.</p>
+          </div>
+        )}
       </section>
 
       <footer className="footer offsite-footer" id="contact">

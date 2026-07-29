@@ -26,6 +26,17 @@ if (!url || !secret) {
 }
 
 const eventYear = Number(process.argv[2]) || new Date().getFullYear();
+const eventType = String(process.argv[3] || "offsite").trim().toLowerCase();
+const eventNames = {
+  offsite: "CBF Offsite",
+  easter: "CBF Easter Service",
+  christmas: "CBF Christmas Service",
+};
+
+if (!(eventType in eventNames)) {
+  throw new Error("Service must be one of: offsite, easter, christmas.");
+}
+
 const submissionId = randomUUID();
 const response = await fetch(url, {
   method: "POST",
@@ -37,7 +48,8 @@ const response = await fetch(url, {
     submissionId,
     submittedAt: new Date().toISOString(),
     eventId: "integration-test",
-    eventTitle: "CBF Offsite",
+    eventType,
+    eventTitle: eventNames[eventType],
     eventYear,
     partySize: 1,
     attendees: [
@@ -60,7 +72,7 @@ if (!response.ok || result.ok !== true) {
 }
 
 console.log(
-  `Google Sheets integration test passed for ${eventYear}. Submission ${submissionId} was added; delete the test row after review.`,
+  `Google Sheets integration test passed for ${eventType} ${eventYear}. Submission ${submissionId} was added; delete the test row after review.`,
 );
 
 if (result.spreadsheetId) {

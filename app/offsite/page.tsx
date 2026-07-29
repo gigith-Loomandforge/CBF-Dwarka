@@ -4,7 +4,7 @@ import Link from "next/link";
 import { SiteHeader } from "../SiteHeader";
 import { client } from "../../sanity/lib/client";
 import { offsitePageQuery } from "../../sanity/lib/queries";
-import { OffsiteRsvpForm } from "./OffsiteRsvpForm";
+import { RsvpForm } from "../RsvpForm";
 
 export const revalidate = 60;
 
@@ -182,7 +182,13 @@ export default async function OffsitePage() {
 
       <section className="offsite-rsvp-section" id="rsvp" aria-labelledby="offsite-rsvp-title">
         {rsvpIsOpen ? (
-          <OffsiteRsvpForm eventId={page._id} intro={rsvpIntro} title={rsvpTitle} />
+          <RsvpForm
+            eventId={page._id}
+            eventType="offsite"
+            headingId="offsite-rsvp-title"
+            intro={rsvpIntro}
+            title={rsvpTitle}
+          />
         ) : (
           <div className="offsite-rsvp-closed">
             <p className="about-kicker">RSVP</p>

@@ -4,10 +4,13 @@ export type GoogleSheetsAttendee = {
   age: number;
 };
 
+export type RsvpEventType = "offsite" | "easter" | "christmas";
+
 export type GoogleSheetsRsvpPayload = {
   submissionId: string;
   submittedAt: string;
   eventId: string;
+  eventType: RsvpEventType;
   eventTitle: string;
   eventYear: number;
   partySize: number;

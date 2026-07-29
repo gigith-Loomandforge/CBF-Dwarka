@@ -4,12 +4,13 @@ import {
   isGoogleSheetsConfigured,
   sendRsvpToGoogleSheets,
   type GoogleSheetsRsvpPayload,
-} from "../app/api/offsite-rsvp/google-sheets.ts";
+} from "../app/api/rsvp/google-sheets.ts";
 
 const payload: GoogleSheetsRsvpPayload = {
   submissionId: "77f14ae8-3ad8-4f1c-82d7-9362df4d65a0",
   submittedAt: "2026-07-29T12:00:00.000Z",
   eventId: "offsite-2026",
+  eventType: "offsite",
   eventTitle: "CBF Offsite",
   eventYear: 2026,
   partySize: 1,
@@ -47,6 +48,7 @@ test("posts the RSVP and secret only to a valid Apps Script URL", async () => {
   const body = JSON.parse(receivedBody);
   assert.equal(body.secret, "server-only-secret");
   assert.equal(body.submissionId, payload.submissionId);
+  assert.equal(body.eventType, "offsite");
   assert.equal(body.attendees[0].name, "Test Attendee");
 });
 

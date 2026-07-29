@@ -20,6 +20,7 @@ export const christmasServicePageType = defineType({
   groups: [
     { name: "hero", title: "Hero", default: true },
     { name: "details", title: "Service Details" },
+    { name: "rsvp", title: "RSVP" },
     { name: "seo", title: "SEO" },
   ],
   fields: [
@@ -80,6 +81,15 @@ export const christmasServicePageType = defineType({
       title: "Service date/time",
       type: "datetime",
       group: "details",
+    }),
+    defineField({
+      name: "eventYear",
+      title: "Event year",
+      type: "number",
+      group: "details",
+      description: "A separate Christmas RSVP spreadsheet is used for each year.",
+      initialValue: () => new Date().getFullYear(),
+      validation: (rule) => rule.required().integer().min(2020).max(2100),
     }),
     defineField({
       name: "scheduleLabel",
@@ -185,6 +195,29 @@ export const christmasServicePageType = defineType({
       ],
     }),
     defineField({
+      name: "rsvpEnabled",
+      title: "Enable RSVP form",
+      type: "boolean",
+      group: "rsvp",
+      initialValue: false,
+      description: "Turn this off when registration for this year's Christmas Service is closed.",
+    }),
+    defineField({
+      name: "rsvpTitle",
+      title: "RSVP title",
+      type: "string",
+      group: "rsvp",
+      initialValue: "Confirm your attendance",
+    }),
+    defineField({
+      name: "rsvpIntro",
+      title: "RSVP intro",
+      type: "text",
+      rows: 3,
+      group: "rsvp",
+      initialValue: "Add your details and include any family members who will attend with you.",
+    }),
+    defineField({
       name: "metaTitle",
       title: "Meta title",
       type: "string",
@@ -203,8 +236,19 @@ export const christmasServicePageType = defineType({
   preview: {
     select: {
       title: "title",
-      subtitle: "scheduleLabel",
+      eventYear: "eventYear",
+      rsvpEnabled: "rsvpEnabled",
+      scheduleLabel: "scheduleLabel",
       media: "heroImage",
+    },
+    prepare({ title, eventYear, rsvpEnabled, scheduleLabel }) {
+      const rsvpState = rsvpEnabled ? "RSVP open" : "RSVP closed";
+      const year = eventYear ? String(eventYear) : "Year not set";
+
+      return {
+        title: `${title || "Christmas Service"} - ${year}`,
+        subtitle: `${rsvpState}${scheduleLabel ? ` - ${scheduleLabel}` : ""}`,
+      };
     },
   },
 });
