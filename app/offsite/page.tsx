@@ -40,21 +40,16 @@ const fallbackOffsitePage: Required<Omit<OffsitePageData, "_id" | "dateTime" | "
   summary:
     "A dedicated time for the CBF Dwarka church family to gather, share fellowship, and spend meaningful time together outside the regular Sunday rhythm.",
   dateTime: undefined,
-  scheduleLabel: "Schedule to be updated",
-  locationName: "Location to be updated",
-  locationAddress: "Please check this page again for the confirmed venue and travel details.",
+  scheduleLabel: "October 1st - 4th, Thursday - Sunday",
+  locationName: "Himalayan Torchbearers",
+  locationAddress: "Dehradun, Uttarakhand",
   mapUrl: undefined,
   rsvpEnabled: true,
   rsvpTitle: "Confirm your attendance",
   rsvpIntro: "Add your details and include any family members who will attend with you.",
   metaTitle: "CBF Offsite | CBF Dwarka",
   metaDescription: "RSVP for the CBF Dwarka offsite gathering.",
-  body: [
-    {
-      heading: "About the gathering",
-      text: "This page is connected to Sanity Studio so the event details, image, location, and RSVP content can be updated by the team.",
-    },
-  ],
+  body: [],
   heroImageUrl: undefined,
   heroImageAlt: undefined,
 };
@@ -168,14 +163,16 @@ export default async function OffsitePage() {
         </article>
       </section>
 
-      <section className="offsite-content" aria-label="Offsite information">
-        {page.body.map((section, index) => (
-          <article key={`${section.heading || "section"}-${index}`}>
-            <h2>{section.heading}</h2>
-            <p>{section.text}</p>
-          </article>
-        ))}
-      </section>
+      {page.body.length ? (
+        <section className="offsite-content" aria-label="Offsite information">
+          {page.body.map((section, index) => (
+            <article key={`${section.heading || "section"}-${index}`}>
+              <h2>{section.heading}</h2>
+              <p>{section.text}</p>
+            </article>
+          ))}
+        </section>
+      ) : null}
 
       <section className="offsite-rsvp-section" id="rsvp" aria-labelledby="offsite-rsvp-title">
         {page.rsvpEnabled ? (
