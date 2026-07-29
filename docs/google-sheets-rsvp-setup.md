@@ -1,12 +1,6 @@
-# Google Sheets RSVP Pilot
+# Google Sheets RSVP Storage
 
-The website supports three RSVP storage modes:
-
-- `sanity`: current behavior and the default.
-- `dual`: write each submission to Google Sheets first, then Sanity.
-- `google`: write only to Google Sheets after the pilot is approved.
-
-Google Sheets remains disabled until its environment variables are configured.
+Sanity manages the event content and RSVP availability. RSVP submissions are stored only in a private Google Sheet owned by CBF Dwarka.
 
 ## 1. Create the Apps Script
 
@@ -26,12 +20,11 @@ Google Sheets remains disabled until its environment variables are configured.
 
 The endpoint is publicly reachable, but requests are accepted only when they contain the server-side secret. The website sends that secret from its Vercel function; it is never included in browser code.
 
-## 3. Configure the local pilot
+## 3. Configure the website
 
 Add these values to `.env.local`:
 
 ```dotenv
-RSVP_STORAGE_MODE=dual
 GOOGLE_APPS_SCRIPT_RSVP_URL=https://script.google.com/macros/s/DEPLOYMENT_ID/exec
 GOOGLE_APPS_SCRIPT_RSVP_SECRET=THE_SAME_SCRIPT_PROPERTY_VALUE
 ```
@@ -44,20 +37,10 @@ npm run rsvp:google:test -- 2026
 
 The test creates one clearly labelled row in the yearly spreadsheet. Confirm the spreadsheet exists in the CBF Google Drive, inspect the row, and then delete the test row.
 
-## 4. Run the live pilot
+## 4. Configure production
 
-Add the same three variables to the Vercel Production environment and redeploy. With `RSVP_STORAGE_MODE=dual`, Sanity remains the existing source while the private Google Sheet receives a duplicate.
+Add the same two variables to the Vercel Production environment and redeploy.
 
 The Apps Script creates one spreadsheet per event year on the first submission, such as `CBF Offsite RSVP 2026`. Each attendee is stored on a separate row. Repeated webhook deliveries with the same submission ID are ignored.
 
-## 5. Complete the migration
-
-After the pilot is verified:
-
-1. Export and migrate the existing Sanity RSVP records.
-2. Change `RSVP_STORAGE_MODE` to `google`.
-3. Redeploy and submit one final test RSVP.
-4. Remove the published RSVP records from Sanity.
-5. Remove or replace the Sanity Studio RSVP export view.
-
-Do not leave `dual` enabled longer than the pilot because Sanity's current public dataset is not appropriate for attendee names and ages.
+RSVP names and ages must not be copied into Sanity. Review or export attendance from the yearly Google Sheet in the CBF Google Drive.

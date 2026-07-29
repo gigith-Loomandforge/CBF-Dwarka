@@ -37,7 +37,7 @@ export default function PrivacyPage() {
         <article>
           <h2>Where it is stored</h2>
           <p>
-            Event RSVP information is stored in Sanity Studio for access by the CBF Dwarka team. Ages and complete RSVP details are not displayed publicly on the website.
+            Event RSVP information is stored in a private Google Sheet owned by CBF Dwarka and available only to authorized ministry team members. Ages and complete RSVP details are not displayed publicly on the website.
           </p>
         </article>
         <article>

@@ -1,5 +1,3 @@
-export type RsvpStorageMode = "sanity" | "dual" | "google";
-
 export type GoogleSheetsAttendee = {
   attendeeType: "Primary attendee" | "Additional member";
   name: string;
@@ -23,26 +21,6 @@ type GoogleSheetsConfig = {
   secret?: string;
   fetchImpl?: typeof fetch;
 };
-
-const supportedStorageModes = new Set<RsvpStorageMode>(["sanity", "dual", "google"]);
-
-export const getRsvpStorageMode = (
-  value = process.env.RSVP_STORAGE_MODE,
-): RsvpStorageMode => {
-  const normalizedValue = value?.trim().toLowerCase() || "sanity";
-
-  if (!supportedStorageModes.has(normalizedValue as RsvpStorageMode)) {
-    throw new Error(`Unsupported RSVP_STORAGE_MODE: ${normalizedValue}`);
-  }
-
-  return normalizedValue as RsvpStorageMode;
-};
-
-export const storageUsesSanity = (mode: RsvpStorageMode) =>
-  mode === "sanity" || mode === "dual";
-
-export const storageUsesGoogleSheets = (mode: RsvpStorageMode) =>
-  mode === "google" || mode === "dual";
 
 export const isGoogleSheetsConfigured = (
   url = process.env.GOOGLE_APPS_SCRIPT_RSVP_URL,

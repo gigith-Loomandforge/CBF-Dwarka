@@ -1,11 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  getRsvpStorageMode,
   isGoogleSheetsConfigured,
   sendRsvpToGoogleSheets,
-  storageUsesGoogleSheets,
-  storageUsesSanity,
   type GoogleSheetsRsvpPayload,
 } from "../app/api/offsite-rsvp/google-sheets.ts";
 
@@ -26,24 +23,6 @@ const payload: GoogleSheetsRsvpPayload = {
   privacyAccepted: true,
   source: "test",
 };
-
-test("defaults to Sanity storage", () => {
-  assert.equal(getRsvpStorageMode(undefined), "sanity");
-  assert.equal(storageUsesSanity("sanity"), true);
-  assert.equal(storageUsesGoogleSheets("sanity"), false);
-});
-
-test("supports dual and Google-only storage modes", () => {
-  assert.equal(getRsvpStorageMode(" DUAL "), "dual");
-  assert.equal(storageUsesSanity("dual"), true);
-  assert.equal(storageUsesGoogleSheets("dual"), true);
-  assert.equal(storageUsesSanity("google"), false);
-  assert.equal(storageUsesGoogleSheets("google"), true);
-});
-
-test("rejects an unsupported storage mode", () => {
-  assert.throws(() => getRsvpStorageMode("unknown"), /Unsupported RSVP_STORAGE_MODE/);
-});
 
 test("requires both Google Sheets settings", () => {
   assert.equal(isGoogleSheetsConfigured("", ""), false);
