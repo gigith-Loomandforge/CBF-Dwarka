@@ -170,7 +170,6 @@ export default async function ChristmasServicePage() {
                 Get Directions
               </a>
             ) : null}
-            <Link className="offsite-secondary-button" href="/connect#annual-events-title">Back to Annual Events</Link>
           </div>
         </div>
 
