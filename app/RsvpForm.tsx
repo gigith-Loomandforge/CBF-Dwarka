@@ -281,7 +281,6 @@ export function RsvpForm({ eventId, eventType, headingId, title, intro }: RsvpFo
       ) : null}
 
       <div className="offsite-form-footer">
-        <p>{partySize} {partySize === 1 ? "attendee" : "attendees"} in this RSVP</p>
         <button className="offsite-primary-button" disabled={submitState.status === "loading"} type="submit">
           {submitState.status === "loading" ? "Submitting" : "Submit RSVP"}
         </button>
