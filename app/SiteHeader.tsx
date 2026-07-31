@@ -18,6 +18,7 @@ export function SiteHeader() {
 
   return (
     <header className="site-header">
+      <a className="skip-link" href="#page-content">Skip to main content</a>
       <Link className="logo" href="/" aria-label="CBF Dwarka home">
         <Image src="/assets/logo-resource-cropped.png" alt="CBF Dwarka" width={139} height={127} priority />
       </Link>
@@ -31,7 +32,6 @@ export function SiteHeader() {
           );
         })}
       </nav>
-      <Link className="language" href="/hi">हिन्दी</Link>
       <MobileMenu />
     </header>
   );

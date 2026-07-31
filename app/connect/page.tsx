@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   },
 };
 
-const churchAddress = "CBF Dwarka, Taekwondo Room, Mount Carmel School, Sector 22, Dwarka";
+const churchAddress = "CBF Dwarka, Taekwondo Room (Room 316), Mount Carmel School, Sector 22, Dwarka";
 const emailAddress = "cbfdwarka2021@gmail.com";
 const phoneNumber = "+91 99108 00733";
 const phoneHref = "tel:+919910800733";
@@ -106,10 +106,10 @@ const annualEvents = [
 
 export default function ConnectPage() {
   return (
-    <main className="connect-page">
+    <main className="connect-page" id="main-content">
       <SiteHeader />
 
-      <section className="connect-plan" aria-labelledby="connect-plan-title">
+      <section className="connect-plan" id="page-content" tabIndex={-1} aria-labelledby="connect-plan-title">
         <div className="connect-inner connect-plan-layout">
           <div className="connect-plan-copy">
             <h1 id="connect-plan-title">Plan a Visit</h1>
@@ -144,9 +144,16 @@ export default function ConnectPage() {
         <div className="connect-inner">
           <h2 id="sunday-gathering-title">Sunday Gathering</h2>
           <div className="connect-gathering-grid">
-            {gatheringCards.map((card) => (
+            {gatheringCards.map((card, index) => (
               <article className="connect-gathering-card" key={card.title}>
-                <Image src={card.image} alt="" width={900} height={514} sizes="(max-width: 900px) 100vw, 357px" />
+                <Image
+                  src={card.image}
+                  alt=""
+                  width={900}
+                  height={514}
+                  sizes="(max-width: 900px) 100vw, 357px"
+                  priority={index === 0}
+                />
                 <div>
                   <h3>{card.title}</h3>
                   <p>{card.body}</p>
@@ -157,7 +164,7 @@ export default function ConnectPage() {
         </div>
       </section>
 
-      <section className="connect-section connect-section-muted" aria-labelledby="ministries-title">
+      <section className="connect-section connect-section-muted" id="ministries" aria-labelledby="ministries-title">
         <div className="connect-inner">
           <div className="connect-section-header">
             <h2 id="ministries-title">Ministries</h2>
@@ -221,6 +228,7 @@ export default function ConnectPage() {
           <nav aria-label="Legal">
             <a href="/privacy">Privacy Policy</a>
             <a href="/terms">Terms &amp; Conditions</a>
+            <a href="/accessibility">Accessibility</a>
           </nav>
         </div>
       </footer>

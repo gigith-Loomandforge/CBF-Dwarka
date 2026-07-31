@@ -48,6 +48,24 @@ summary:focus-visible {
   border-radius: 4px;
 }
 
+.skip-link {
+  background: #ffffff;
+  color: #101010;
+  font-size: 0.875rem;
+  font-weight: 700;
+  left: 1rem;
+  padding: 0.7rem 1rem;
+  position: fixed;
+  top: 0.75rem;
+  transform: translateY(-200%);
+  transition: transform 160ms ease;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
 main {
   position: relative;
   overflow: hidden;
@@ -1051,8 +1069,7 @@ p {
 
 .sermon-episode-image img {
   width: 100%;
-  height: auto;
-  min-height: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
   transition: transform 220ms var(--ease-out), filter 180ms ease;
@@ -3175,6 +3192,14 @@ p {
   border: 1px solid #eee8dc;
   background: #fff;
   box-shadow: 0 18px 42px rgba(27, 27, 27, 0.06);
+}
+
+.offsite-rsvp-form .rsvp-honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 .offsite-form-header p:last-child,

@@ -68,33 +68,13 @@ type RawYouTubeVideo = {
 
 const fallbackSermons: SermonVideo[] = [
   {
-    image: "/assets/sermon-1.png",
+    image: "/assets/hero.png",
     number: "01",
-    kind: "Sunday Sermon",
-    title: "Walking in Faith",
-    body: "Discovering trust in the unknown paths.",
-    description: "Discovering trust in the unknown paths.",
-    href: "/sermons",
-    youtubeHref: youtubeChannelUrl,
-  },
-  {
-    image: "/assets/sermon-2.png",
-    number: "02",
-    kind: "Bible Study",
-    title: "The Prodigal Son",
-    body: "A profound study on returning home.",
-    description: "A profound study on returning home.",
-    href: "/sermons",
-    youtubeHref: youtubeChannelUrl,
-  },
-  {
-    image: "/assets/sermon-3.png",
-    number: "03",
-    kind: "Midweek Message",
-    title: "Grace Renewed",
-    body: "Fresh perspective for the weary soul.",
-    description: "Fresh perspective for the weary soul.",
-    href: "/sermons",
+    kind: "YouTube Channel",
+    title: "Watch CBF Dwarka on YouTube",
+    body: "Open the official channel for sermons and recent teaching.",
+    description: "Open the official CBF Dwarka YouTube channel for sermons and recent teaching.",
+    href: youtubeChannelUrl,
     youtubeHref: youtubeChannelUrl,
   },
 ];
@@ -250,6 +230,86 @@ const collectVideoRenderers = (value: unknown, renderers: Record<string, unknown
     renderers.push(renderer);
   }
 
+  const lockup = value.lockupViewModel;
+
+  if (
+    isRecord(lockup) &&
+    lockup.contentType === "LOCKUP_CONTENT_TYPE_VIDEO" &&
+    typeof lockup.contentId === "string" &&
+    !seenVideoIds.has(lockup.contentId)
+  ) {
+    const contentImage = isRecord(lockup.contentImage) ? lockup.contentImage : {};
+    const thumbnailViewModel = isRecord(contentImage.thumbnailViewModel)
+      ? contentImage.thumbnailViewModel
+      : {};
+    const image = isRecord(thumbnailViewModel.image) ? thumbnailViewModel.image : {};
+    const metadata = isRecord(lockup.metadata) ? lockup.metadata : {};
+    const metadataViewModel = isRecord(metadata.lockupMetadataViewModel)
+      ? metadata.lockupMetadataViewModel
+      : {};
+    const title = isRecord(metadataViewModel.title) ? metadataViewModel.title : {};
+    const metadataContainer = isRecord(metadataViewModel.metadata)
+      ? metadataViewModel.metadata
+      : {};
+    const contentMetadata = isRecord(metadataContainer.contentMetadataViewModel)
+      ? metadataContainer.contentMetadataViewModel
+      : {};
+    const metadataRows = Array.isArray(contentMetadata.metadataRows)
+      ? contentMetadata.metadataRows
+      : [];
+    const publishedAt = metadataRows
+      .flatMap((row) => {
+        if (!isRecord(row) || !Array.isArray(row.metadataParts)) {
+          return [];
+        }
+
+        return row.metadataParts.flatMap((part) => {
+          if (!isRecord(part) || !isRecord(part.text)) {
+            return [];
+          }
+
+          return typeof part.text.content === "string" ? [part.text.content] : [];
+        });
+      })
+      .find((text) => /\b(?:ago|today|yesterday|premiered|streamed)\b/i.test(text));
+    let durationLabel = "";
+
+    const findDuration = (candidate: unknown): void => {
+      if (durationLabel || !candidate) {
+        return;
+      }
+
+      if (Array.isArray(candidate)) {
+        candidate.forEach(findDuration);
+        return;
+      }
+
+      if (!isRecord(candidate)) {
+        return;
+      }
+
+      if (
+        typeof candidate.text === "string" &&
+        /^\d{1,2}:\d{2}(?::\d{2})?$/.test(candidate.text)
+      ) {
+        durationLabel = candidate.text;
+        return;
+      }
+
+      Object.values(candidate).forEach(findDuration);
+    };
+
+    findDuration(thumbnailViewModel.overlays);
+    seenVideoIds.add(lockup.contentId);
+    renderers.push({
+      videoId: lockup.contentId,
+      title: { simpleText: typeof title.content === "string" ? title.content : "" },
+      publishedTimeText: { simpleText: publishedAt || "" },
+      thumbnail: { thumbnails: Array.isArray(image.sources) ? image.sources : [] },
+      lengthText: { simpleText: durationLabel },
+    });
+  }
+
   Object.values(value).forEach((item) => collectVideoRenderers(item, renderers, seenVideoIds));
 };
 
@@ -310,6 +370,15 @@ export const getYoutubeEmbedUrl = (videoId: string) => {
 
 const getInternalSermonHref = (videoId?: string) => (videoId ? `/sermons/${encodeURIComponent(videoId)}` : "/sermons");
 
+const normalizePublishedAt = (value?: string) => {
+  if (!value) {
+    return undefined;
+  }
+
+  const timestamp = Date.parse(value);
+  return Number.isNaN(timestamp) ? undefined : new Date(timestamp).toISOString();
+};
+
 const youtubeApiFetch = async <T,>(path: string, params: Record<string, string>, apiKey: string) => {
   const url = new URL(`https://www.googleapis.com/youtube/v3/${path}`);
 
@@ -335,7 +404,7 @@ const mapYouTubeVideosToSermons = (videos: RawYouTubeVideo[]): SermonVideo[] =>
     title: video.title,
     body: getVideoDescription(video.description, video.title),
     description: video.description?.replace(/\s+/g, " ").trim(),
-    publishedAt: video.publishedAt,
+    publishedAt: normalizePublishedAt(video.publishedAt),
     href: getInternalSermonHref(video.id),
     youtubeHref: getYoutubeWatchUrl(video.id),
   }));
@@ -478,20 +547,10 @@ const getYouTubeRssVideos = async (limit: number): Promise<SermonVideo[]> => {
   return mapYouTubeVideosToSermons(recentVideos);
 };
 
-const getYouTubePageVideos = async (limit: number): Promise<SermonVideo[]> => {
-  const response = await fetch(youtubeVideosPageUrl, {
-    headers: {
-      "accept-language": "en-US,en;q=0.9",
-      "user-agent": "Mozilla/5.0 CBF-Dwarka-Website",
-    },
-    next: { revalidate: sermonRevalidate },
-  });
-
-  if (!response.ok) {
-    return [];
-  }
-
-  const html = await response.text();
+export const parseYouTubePageVideos = (
+  html: string,
+  limit: number,
+): SermonVideo[] => {
   const initialDataJson = extractJsonObject(html, "ytInitialData");
 
   if (!initialDataJson) {
@@ -540,6 +599,22 @@ const getYouTubePageVideos = async (limit: number): Promise<SermonVideo[]> => {
     .slice(0, limit);
 
   return mapYouTubeVideosToSermons(recentVideos);
+};
+
+const getYouTubePageVideos = async (limit: number): Promise<SermonVideo[]> => {
+  const response = await fetch(youtubeVideosPageUrl, {
+    headers: {
+      "accept-language": "en-US,en;q=0.9",
+      "user-agent": "Mozilla/5.0 CBF-Dwarka-Website",
+    },
+    next: { revalidate: sermonRevalidate },
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  return parseYouTubePageVideos(await response.text(), limit);
 };
 
 export const getRecentSermons = async (limit = defaultRecentVideoLimit): Promise<SermonVideo[]> => {

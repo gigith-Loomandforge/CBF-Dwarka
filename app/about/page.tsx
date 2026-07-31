@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AboutCarousel } from "../AboutCarousel";
 import { SiteHeader } from "../SiteHeader";
+import { siteConfig } from "../site-config";
 
 export const metadata: Metadata = {
   title: "About CBF Dwarka | Christian Believers Fellowship",
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
   },
 };
 
-const churchAddress = "CBF Dwarka, Taekwondo Room, Mount Carmel School, Sector 22, Dwarka";
+const churchAddress = "CBF Dwarka, Taekwondo Room (Room 316), Mount Carmel School, Sector 22, Dwarka";
 
 const BookIcon = () => (
   <svg aria-hidden="true" viewBox="0 0 32 32" className="about-value-icon">
@@ -43,11 +44,11 @@ const InstagramIcon = () => (
   </svg>
 );
 
-const FacebookIcon = () => (
+const YouTubeIcon = () => (
   <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
     <path
       fill="currentColor"
-      d="M20.5 2h-17A1.5 1.5 0 0 0 2 3.5v17A1.5 1.5 0 0 0 3.5 22h9.15v-7.74h-2.6v-3.02h2.6V9.01c0-2.58 1.58-3.99 3.88-3.99 1.1 0 2.04.08 2.32.12v2.69h-1.59c-1.25 0-1.49.6-1.49 1.47v1.94h2.98l-.39 3.02h-2.59V22h4.73a1.5 1.5 0 0 0 1.5-1.5v-17A1.5 1.5 0 0 0 20.5 2Z"
+      d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4L15.8 12l-6.2 3.6Z"
     />
   </svg>
 );
@@ -135,10 +136,10 @@ const beliefItems = [
 
 export default function AboutPage() {
   return (
-    <main className="about-page">
+    <main className="about-page" id="main-content">
       <SiteHeader />
 
-      <section className="about-history" aria-labelledby="about-history-title">
+      <section className="about-history" id="page-content" tabIndex={-1} aria-labelledby="about-history-title">
         <div className="about-history-copy">
           <p className="about-kicker">Our History</p>
           <h1 id="about-history-title">Reformed Tradition</h1>
@@ -222,8 +223,8 @@ export default function AboutPage() {
             <a href="mailto:cbfdwarka2021@gmail.com">cbfdwarka2021@gmail.com</a>
             <a href="tel:+919910800733">+91 99108 00733</a>
             <div className="socials" aria-label="Social links">
-              <a href="#" aria-label="Instagram"><InstagramIcon /></a>
-              <a href="#" aria-label="Facebook"><FacebookIcon /></a>
+              <a href={siteConfig.instagramUrl} aria-label="CBF Dwarka on Instagram" target="_blank" rel="noreferrer"><InstagramIcon /></a>
+              <a href={siteConfig.youtubeUrl} aria-label="CBF Dwarka on YouTube" target="_blank" rel="noreferrer"><YouTubeIcon /></a>
             </div>
           </div>
           <p className="footer-note">The visuals and information shown are for representation purposes only and may be subject to change.</p>
@@ -232,8 +233,9 @@ export default function AboutPage() {
           <p>© 2026 CBFDwarka. All rights reserved.</p>
           <p>Made with love by people at <a href="https://www.loomandforge.com/">Loom &amp; Forge</a></p>
           <nav aria-label="Legal">
-            <a href="/privacy">Privacy Policy</a>
-            <a href="/terms">Terms &amp; Conditions</a>
+              <a href="/privacy">Privacy Policy</a>
+              <a href="/terms">Terms &amp; Conditions</a>
+              <a href="/accessibility">Accessibility</a>
           </nav>
         </div>
       </footer>

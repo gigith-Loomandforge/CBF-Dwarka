@@ -33,7 +33,7 @@ Published event changes appear on the website after the Next.js cache refreshes.
 - `Schedule label`: Text shown at the top of the event card, such as `Sun - 10:30 AM`.
 - `Description`: Short homepage card copy. Keep it under 180 characters.
 - `CTA label`: Button/link text.
-- `CTA link`: Use a section link like `#visit`, a path like `/events`, or a full URL.
+- `CTA link`: Use a useful page or section such as `/connect`, `/connect#ministries`, or `/contact`. Do not link an event card back to its own section.
 - `Homepage date label`: Text shown in the black homepage event card, such as `Every Sunday`.
 - `Homepage time label`: Time shown in the black homepage event card, such as `10:30 AM`.
 - `Sort order`: Tie-breaker only, lower numbers win when dates match.

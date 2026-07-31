@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "../SiteHeader";
+import { StructuredData } from "../StructuredData";
+import { absoluteUrl, siteConfig } from "../site-config";
 import { getSermonLibrary, getYoutubeEmbedUrl, youtubeChannelUrl } from "./sermon-data";
 
-const churchAddress = "CBF Dwarka, Taekwondo Room, Mount Carmel School, Sector 22, Dwarka";
+const churchAddress = "CBF Dwarka, Taekwondo Room (Room 316), Mount Carmel School, Sector 22, Dwarka";
 const emailAddress = "cbfdwarka2021@gmail.com";
 const phoneNumber = "+91 99108 00733";
 const phoneHref = "tel:+919910800733";
@@ -37,10 +39,34 @@ export async function SermonsPage({ selectedVideoId }: SermonsPageProps) {
   const selectedDescription = selected?.description || selected?.body || "Recent teaching from CBF Dwarka.";
 
   return (
-    <main className="sermon-page">
+    <main className="sermon-page" id="main-content">
       <SiteHeader />
+      {selected?.videoId && selected.publishedAt && selected.image ? (
+        <StructuredData
+          data={{
+            "@context": "https://schema.org",
+            "@type": "VideoObject",
+            name: selected.title,
+            description: selectedDescription,
+            thumbnailUrl: [selected.image],
+            uploadDate: selected.publishedAt,
+            embedUrl: getYoutubeEmbedUrl(selected.videoId),
+            contentUrl: `https://www.youtube.com/watch?v=${encodeURIComponent(selected.videoId)}`,
+            url: absoluteUrl(`/sermons/${encodeURIComponent(selected.videoId)}`),
+            publisher: {
+              "@type": "Organization",
+              "@id": absoluteUrl("/#organization"),
+              name: siteConfig.fullName,
+              logo: {
+                "@type": "ImageObject",
+                url: absoluteUrl("/assets/logo-resource-cropped.png"),
+              },
+            },
+          }}
+        />
+      ) : null}
 
-      <section className="sermon-hero" aria-labelledby="sermon-page-title">
+      <section className="sermon-hero" id="page-content" tabIndex={-1} aria-labelledby="sermon-page-title">
         <div>
           <p className="about-kicker">Sermons</p>
           <h1 id="sermon-page-title">Watch recent messages from CBF Dwarka.</h1>
@@ -129,6 +155,7 @@ export async function SermonsPage({ selectedVideoId }: SermonsPageProps) {
           <nav aria-label="Legal">
             <a href="/privacy">Privacy Policy</a>
             <a href="/terms">Terms &amp; Conditions</a>
+            <a href="/accessibility">Accessibility</a>
           </nav>
         </div>
       </footer>

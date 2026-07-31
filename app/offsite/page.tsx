@@ -5,6 +5,7 @@ import { SiteHeader } from "../SiteHeader";
 import { client } from "../../sanity/lib/client";
 import { offsitePageQuery } from "../../sanity/lib/queries";
 import { RsvpForm } from "../RsvpForm";
+import { EventStructuredData } from "../EventStructuredData";
 
 export const revalidate = 60;
 
@@ -99,6 +100,11 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: "/offsite",
     },
+    robots: {
+      index: false,
+      follow: false,
+      noarchive: true,
+    },
     openGraph: {
       title: page.metaTitle || page.title,
       description: page.metaDescription || page.summary,
@@ -115,10 +121,19 @@ export default async function OffsitePage() {
   const rsvpIsOpen = Boolean(page._id && page.isActive && page.rsvpEnabled);
 
   return (
-    <main className="offsite-page offsite-event-page">
+    <main className="offsite-page offsite-event-page" id="main-content">
       <SiteHeader />
+      <EventStructuredData
+        name={page.title || "CBF Offsite"}
+        description={page.summary}
+        startDate={page.dateTime}
+        url="/offsite"
+        image={page.heroImageUrl}
+        locationName={page.locationName}
+        locationAddress={page.locationAddress}
+      />
 
-      <section className="offsite-hero" aria-labelledby="offsite-title">
+      <section className="offsite-hero" id="page-content" tabIndex={-1} aria-labelledby="offsite-title">
         <div className="offsite-hero-copy">
           <p className="about-kicker">{page.eyebrow}</p>
           <h1 id="offsite-title">{page.title}</h1>
@@ -203,7 +218,7 @@ export default async function OffsitePage() {
           <div className="footer-brand">
             <h2>CBF Dwarka</h2>
             <strong>Mount Carmel School</strong>
-            <p>CBF Dwarka, Taekwondo Room, Mount Carmel School, Sector 22, Dwarka</p>
+            <p>CBF Dwarka, Taekwondo Room (Room 316), Mount Carmel School, Sector 22, Dwarka</p>
           </div>
           <div className="footer-contact">
             <h3>Contact Us</h3>
@@ -218,6 +233,7 @@ export default async function OffsitePage() {
           <nav aria-label="Legal">
             <Link href="/privacy">Privacy Policy</Link>
             <Link href="/terms">Terms &amp; Conditions</Link>
+            <Link href="/accessibility">Accessibility</Link>
           </nav>
         </div>
       </footer>

@@ -22,6 +22,8 @@ The endpoint is publicly reachable, but requests are accepted only when they con
 
 When `Code.gs` changes, open **Deploy > Manage deployments**, edit the active web app, select **New version**, and deploy it. This keeps the existing `/exec` URL and Vercel settings.
 
+The website deployment does not update Apps Script automatically. Treat Apps Script as a separate production release and record its deployed version.
+
 ## 3. Configure the website
 
 Add these values to `.env.local`:
@@ -70,3 +72,17 @@ For Easter or Christmas:
 4. Turn on **Enable RSVP form** and publish.
 
 The first RSVP creates a new private spreadsheet for that service and year. Turn the RSVP switch off and publish when registration closes. Previous yearly spreadsheets remain available in the CBF Google Drive.
+
+## 6. Privacy and yearly retention review
+
+After each event:
+
+1. Confirm registration is closed in Sanity.
+2. Restrict the spreadsheet to named ministry-team accounts.
+3. Remove test rows and correct any duplicate or incomplete records.
+4. Export an operational copy only when needed and store it in the approved CBF Drive.
+5. Review whether names and ages are still needed.
+6. Delete or anonymize attendee information that is no longer needed for event administration, follow-up, security, or an applicable record-keeping requirement.
+7. Record the review date and responsible ministry-team member.
+
+Do not place attendee names, ages, sheet IDs, or webhook secrets in Sanity, source control, analytics, URLs, or public documents.

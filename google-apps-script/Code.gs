@@ -43,7 +43,10 @@ function doPost(event) {
 
     const normalized = validatePayload_(payload);
     const lock = LockService.getScriptLock();
-    lock.waitLock(20000);
+
+    if (!lock.tryLock(8000)) {
+      throw new Error("RSVP storage is busy");
+    }
 
     try {
       const spreadsheet = getOrCreateSpreadsheet_(
@@ -82,6 +85,7 @@ function doPost(event) {
       sheet
         .getRange(startRow, 2, rows.length, 1)
         .setNumberFormat("dd mmm yyyy, hh:mm");
+      SpreadsheetApp.flush();
 
       return jsonResponse_({
         ok: true,
@@ -168,7 +172,11 @@ function validatePayload_(payload) {
   const eventId = String(payload.eventId || "").trim();
   const eventType = String(payload.eventType || "").trim().toLowerCase();
 
-  if (!/^[a-f0-9-]{36}$/i.test(String(payload.submissionId || ""))) {
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      String(payload.submissionId || ""),
+    )
+  ) {
     throw new Error("Invalid submission ID");
   }
 

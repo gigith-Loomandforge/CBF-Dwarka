@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 type AdditionalMember = {
   id: string;
@@ -33,11 +33,18 @@ const createMember = (id: number): AdditionalMember => ({
 
 export function RsvpForm({ eventId, eventType, headingId, title, intro }: RsvpFormProps) {
   const memberId = useRef(0);
+  const submissionId = useRef<string | null>(null);
+  const formStartedAt = useRef<number | null>(null);
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [members, setMembers] = useState<AdditionalMember[]>([]);
+  const [website, setWebsite] = useState("");
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [submitState, setSubmitState] = useState<SubmitState>({ status: "idle", message: "" });
+
+  useEffect(() => {
+    formStartedAt.current = Date.now();
+  }, []);
 
   const partySize = useMemo(() => 1 + members.filter((member) => member.name.trim() || member.age.trim()).length, [members]);
 
@@ -60,12 +67,16 @@ export function RsvpForm({ eventId, eventType, headingId, title, intro }: RsvpFo
     setName("");
     setAge("");
     setMembers([]);
+    setWebsite("");
     setPrivacyAccepted(false);
+    submissionId.current = null;
+    formStartedAt.current = Date.now();
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitState({ status: "loading", message: "Submitting your RSVP..." });
+    submissionId.current ||= crypto.randomUUID();
 
     try {
       const response = await fetch("/api/rsvp", {
@@ -76,6 +87,9 @@ export function RsvpForm({ eventId, eventType, headingId, title, intro }: RsvpFo
         body: JSON.stringify({
           eventId,
           eventType,
+          submissionId: submissionId.current,
+          formStartedAt: formStartedAt.current,
+          website,
           primary: { name, age },
           additionalMembers: members.map((member) => ({ name: member.name, age: member.age })),
           privacyAccepted,
@@ -135,6 +149,18 @@ export function RsvpForm({ eventId, eventType, headingId, title, intro }: RsvpFo
           />
         </label>
       </div>
+
+      <label className="rsvp-honeypot" aria-hidden="true">
+        <span>Website</span>
+        <input
+          autoComplete="off"
+          name="website"
+          onChange={(event) => setWebsite(event.target.value)}
+          tabIndex={-1}
+          type="text"
+          value={website}
+        />
+      </label>
 
       <div className="offsite-members">
         <div className="offsite-members-header">
@@ -196,7 +222,7 @@ export function RsvpForm({ eventId, eventType, headingId, title, intro }: RsvpFo
           type="checkbox"
         />
         <span>
-          I agree to the <Link href="/privacy">Privacy Policy</Link> and <Link href="/terms">Terms &amp; Conditions</Link>.
+          I have read the <Link href="/privacy">Privacy Policy</Link> and <Link href="/terms">Terms &amp; Conditions</Link>. I consent to CBF Dwarka using the names and ages entered only to manage attendance for this event. I confirm that I am an adult and am authorized to provide details for every additional attendee.
         </span>
       </label>
 

@@ -136,7 +136,7 @@ export const eventType = defineType({
       title: "CTA link",
       type: "string",
       group: "content",
-      initialValue: "#events",
+      initialValue: "/connect",
       validation: (rule) =>
         rule.custom((value) => {
           if (!value || value.startsWith("#") || value.startsWith("/")) {

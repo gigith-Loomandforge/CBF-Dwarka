@@ -5,14 +5,18 @@ import {
   sendRsvpToGoogleSheets,
   type RsvpEventType,
 } from "./google-sheets";
+import { siteConfig } from "../../site-config";
+import {
+  maxMembers,
+  normalizeName,
+  validateMember,
+  type RsvpMemberInput,
+} from "./validation";
 
-type RsvpMemberInput = {
-  name?: unknown;
-  age?: unknown;
-};
-
-const maxMembers = 12;
-const maxNameLength = 90;
+const maxRequestCharacters = 20_000;
+const minimumFormCompletionMilliseconds = 1_500;
+const maximumFormAgeMilliseconds = 2 * 60 * 60 * 1_000;
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const rsvpEventConfigs: Record<
   RsvpEventType,
   { documentType: string; fallbackTitle: string; requiresActive: boolean }
@@ -38,73 +42,121 @@ const isRsvpEventType = (value: unknown): value is RsvpEventType =>
   typeof value === "string" &&
   Object.prototype.hasOwnProperty.call(rsvpEventConfigs, value);
 
-const normalizeName = (value: unknown) => (typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "");
+const jsonResponse = (body: { message: string; partySize?: number }, status = 200) =>
+  NextResponse.json(body, {
+    status,
+    headers: {
+      "Cache-Control": "no-store",
+    },
+  });
 
-const normalizeAge = (value: unknown) => {
-  const numericValue = typeof value === "number" ? value : Number(value);
-  return Number.isInteger(numericValue) ? numericValue : null;
-};
+const hasAllowedOrigin = (request: Request) => {
+  const origin = request.headers.get("origin");
 
-const validateMember = (member: RsvpMemberInput, label: string) => {
-  const name = normalizeName(member.name);
-  const age = normalizeAge(member.age);
-
-  if (!name) {
-    return { error: `${label} name is required.` };
+  if (!origin) {
+    return true;
   }
 
-  if (name.length > maxNameLength) {
-    return { error: `${label} name is too long.` };
-  }
+  try {
+    const url = new URL(origin);
+    const vercelOrigins = [
+      "https://cbf-dwarka.vercel.app",
+      process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : "",
+      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",
+    ];
 
-  if (age === null || age < 0 || age > 120) {
-    return { error: `${label} age must be between 0 and 120.` };
+    return (
+      origin === siteConfig.url ||
+      origin === siteConfig.url.replace("://www.", "://") ||
+      vercelOrigins.includes(origin) ||
+      (url.hostname === "localhost" && ["http:", "https:"].includes(url.protocol))
+    );
+  } catch {
+    return false;
   }
-
-  return { member: { name, age } };
 };
 
 export async function POST(request: Request) {
   if (!client || !isGoogleSheetsConfigured()) {
-    return NextResponse.json(
-      { message: "RSVP is not configured yet. Please contact CBF Dwarka directly." },
-      { status: 503 },
-    );
+    return jsonResponse({ message: "RSVP is not configured yet. Please contact CBF Dwarka directly." }, 503);
+  }
+
+  if (!hasAllowedOrigin(request)) {
+    return jsonResponse({ message: "This RSVP request could not be accepted." }, 403);
+  }
+
+  const declaredLength = Number(request.headers.get("content-length") || 0);
+
+  if (declaredLength > maxRequestCharacters) {
+    return jsonResponse({ message: "This RSVP submission is too large." }, 413);
   }
 
   let payload: {
     eventId?: unknown;
     eventType?: unknown;
+    submissionId?: unknown;
+    formStartedAt?: unknown;
+    website?: unknown;
     primary?: RsvpMemberInput;
     additionalMembers?: RsvpMemberInput[];
     privacyAccepted?: unknown;
   };
 
   try {
-    payload = await request.json();
+    const body = await request.text();
+
+    if (body.length > maxRequestCharacters) {
+      return jsonResponse({ message: "This RSVP submission is too large." }, 413);
+    }
+
+    const parsed = JSON.parse(body) as unknown;
+
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("Invalid payload");
+    }
+
+    payload = parsed;
   } catch {
-    return NextResponse.json({ message: "Invalid RSVP submission." }, { status: 400 });
+    return jsonResponse({ message: "Invalid RSVP submission." }, 400);
+  }
+
+  if (typeof payload.website === "string" && payload.website.trim()) {
+    return jsonResponse({ message: "RSVP received." });
+  }
+
+  const formStartedAt = Number(payload.formStartedAt);
+  const formAge = Date.now() - formStartedAt;
+
+  if (
+    !Number.isFinite(formStartedAt) ||
+    formAge < minimumFormCompletionMilliseconds ||
+    formAge > maximumFormAgeMilliseconds
+  ) {
+    return jsonResponse({ message: "Please review the form and submit it again." }, 429);
   }
 
   if (payload.privacyAccepted !== true) {
-    return NextResponse.json({ message: "Please accept the privacy policy and terms." }, { status: 400 });
+    return jsonResponse({ message: "Please accept the privacy policy and terms." }, 400);
   }
 
   const primaryResult = validateMember(payload.primary || {}, "Primary attendee");
 
   if ("error" in primaryResult) {
-    return NextResponse.json({ message: primaryResult.error }, { status: 400 });
+    return jsonResponse({ message: primaryResult.error }, 400);
   }
 
   const rawAdditionalMembers = Array.isArray(payload.additionalMembers) ? payload.additionalMembers : [];
 
   if (rawAdditionalMembers.length > maxMembers) {
-    return NextResponse.json({ message: `Please add no more than ${maxMembers} additional members.` }, { status: 400 });
+    return jsonResponse({ message: `Please add no more than ${maxMembers} additional members.` }, 400);
   }
 
   const additionalMembers = [];
 
-  for (const [index, member] of rawAdditionalMembers.entries()) {
+  for (const [index, rawMember] of rawAdditionalMembers.entries()) {
+    const member = rawMember && typeof rawMember === "object" ? rawMember : {};
     const hasAnyValue = Boolean(normalizeName(member.name) || String(member.age ?? "").trim());
 
     if (!hasAnyValue) {
@@ -114,7 +166,7 @@ export async function POST(request: Request) {
     const result = validateMember(member, `Additional member ${index + 1}`);
 
     if ("error" in result) {
-      return NextResponse.json({ message: result.error }, { status: 400 });
+      return jsonResponse({ message: result.error }, 400);
     }
 
     additionalMembers.push({
@@ -126,9 +178,13 @@ export async function POST(request: Request) {
 
   const eventId = typeof payload.eventId === "string" && payload.eventId.trim() ? payload.eventId.trim() : null;
   const eventType = isRsvpEventType(payload.eventType) ? payload.eventType : null;
+  const requestedSubmissionId =
+    typeof payload.submissionId === "string" && uuidPattern.test(payload.submissionId)
+      ? payload.submissionId
+      : null;
 
-  if (!eventId || !eventType) {
-    return NextResponse.json({ message: "This event is not available for RSVP." }, { status: 400 });
+  if (!eventId || eventId.length > 120 || !eventType || !requestedSubmissionId) {
+    return jsonResponse({ message: "This event is not available for RSVP." }, 400);
   }
 
   const eventConfig = rsvpEventConfigs[eventType];
@@ -156,25 +212,42 @@ export async function POST(request: Request) {
       { documentType: eventConfig.documentType, eventId },
     );
   } catch {
-    return NextResponse.json(
-      { message: "We could not confirm the event status. Please try again." },
-      { status: 503 },
-    );
+    return jsonResponse({ message: "We could not confirm the event status. Please try again." }, 503);
   }
+
+  let isLatestAnnualEvent = true;
+
+  if (event && eventType !== "offsite") {
+    const slug = eventType === "easter" ? "easter-service" : "christmas-service";
+
+    try {
+      const latestEventId = await client.fetch<string | null>(
+        `(*[
+          _type == $documentType &&
+          slug.current == $slug
+        ] | order(coalesce(eventYear, 0) desc, _updatedAt desc))[0]._id`,
+        { documentType: eventConfig.documentType, slug },
+      );
+      isLatestAnnualEvent = latestEventId === event._id;
+    } catch {
+      return jsonResponse({ message: "We could not confirm the event status. Please try again." }, 503);
+    }
+  }
+
+  const currentYear = new Date().getUTCFullYear();
 
   if (
     !event ||
     (eventConfig.requiresActive && event.isActive !== true) ||
-    event.rsvpEnabled !== true
+    event.rsvpEnabled !== true ||
+    !isLatestAnnualEvent ||
+    (typeof event.eventYear === "number" && event.eventYear < currentYear)
   ) {
-    return NextResponse.json(
-      { message: "RSVP is closed for this event." },
-      { status: 409 },
-    );
+    return jsonResponse({ message: "RSVP is closed for this event." }, 409);
   }
 
   const partySize = 1 + additionalMembers.length;
-  const submissionId = crypto.randomUUID();
+  const submissionId = requestedSubmissionId;
   const submittedAt = new Date().toISOString();
   const eventDate = event.serviceDateTime || event.dateTime || submittedAt;
   const eventYear = event.eventYear ?? new Date(eventDate).getFullYear();
@@ -208,13 +281,10 @@ export async function POST(request: Request) {
       "Google Sheets RSVP write failed.",
       error instanceof Error ? error.message : "Unknown error",
     );
-    return NextResponse.json(
-      { message: "We could not save your RSVP right now. Please try again." },
-      { status: 503 },
-    );
+    return jsonResponse({ message: "We could not save your RSVP right now. Please try again." }, 503);
   }
 
-  return NextResponse.json({
+  return jsonResponse({
     message: "RSVP received.",
     partySize,
   });

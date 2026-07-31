@@ -64,7 +64,7 @@ export const offsitePageQuery = groq`*[
 export const easterServicePageQuery = groq`*[
   _type == "easterServicePage" &&
   slug.current == "easter-service"
-] | order(_updatedAt desc)[0] {
+] | order(coalesce(eventYear, 0) desc, coalesce(serviceDateTime, "1970-01-01") desc, _updatedAt desc)[0] {
   _id,
   title,
   eyebrow,
@@ -96,7 +96,7 @@ export const easterServicePageQuery = groq`*[
 export const christmasServicePageQuery = groq`*[
   _type == "christmasServicePage" &&
   slug.current == "christmas-service"
-] | order(_updatedAt desc)[0] {
+] | order(coalesce(eventYear, 0) desc, coalesce(serviceDateTime, "1970-01-01") desc, _updatedAt desc)[0] {
   _id,
   title,
   eyebrow,

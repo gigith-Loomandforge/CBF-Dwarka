@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "../SiteHeader";
 import { RsvpForm } from "../RsvpForm";
+import { EventStructuredData } from "../EventStructuredData";
 import { client } from "../../sanity/lib/client";
 import { christmasServicePageQuery } from "../../sanity/lib/queries";
 
@@ -41,7 +42,7 @@ type ChristmasServicePageData = {
   heroImageAlt?: string;
 };
 
-const churchAddress = "CBF Dwarka, Taekwondo Room, Mount Carmel School, Sector 22, Dwarka";
+const churchAddress = "CBF Dwarka, Taekwondo Room (Room 316), Mount Carmel School, Sector 22, Dwarka";
 const emailAddress = "cbfdwarka2021@gmail.com";
 const phoneNumber = "+91 99108 00733";
 const phoneHref = "tel:+919910800733";
@@ -155,10 +156,19 @@ export default async function ChristmasServicePage() {
   const rsvpIsOpen = Boolean(page._id && page.rsvpEnabled);
 
   return (
-    <main className="offsite-page christmas-service-page">
+    <main className="offsite-page christmas-service-page" id="main-content">
       <SiteHeader />
+      <EventStructuredData
+        name={page.title || "CBF Christmas Service"}
+        description={page.summary}
+        startDate={page.serviceDateTime}
+        url="/christmas-service"
+        image={page.heroImageUrl}
+        locationName={page.locationName}
+        locationAddress={page.locationAddress}
+      />
 
-      <section className="offsite-hero christmas-service-hero" aria-labelledby="christmas-service-title">
+      <section className="offsite-hero christmas-service-hero" id="page-content" tabIndex={-1} aria-labelledby="christmas-service-title">
         <div className="offsite-hero-copy">
           <p className="about-kicker">{page.eyebrow}</p>
           <h1 id="christmas-service-title">{page.title}</h1>
@@ -241,6 +251,7 @@ export default async function ChristmasServicePage() {
           <nav aria-label="Legal">
             <Link href="/privacy">Privacy Policy</Link>
             <Link href="/terms">Terms &amp; Conditions</Link>
+            <Link href="/accessibility">Accessibility</Link>
           </nav>
         </div>
       </footer>

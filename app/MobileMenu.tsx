@@ -10,7 +10,6 @@ const navItems = [
   { href: "/connect", label: "Connect", path: "/connect" },
   { href: "/sermons", label: "Sermons", path: "/sermons" },
   { href: "/contact", label: "Contact", path: "/contact" },
-  { href: "/hi", label: "हिन्दी" },
 ];
 
 export function MobileMenu() {
