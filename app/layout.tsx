@@ -30,10 +30,10 @@ export const metadata: Metadata = {
     locale: "en_IN",
     images: [
       {
-        url: "/assets/hero.png",
-        width: 1920,
-        height: 922,
-        alt: "CBF Dwarka church family",
+        url: "/assets/logo-resource.png",
+        width: 242,
+        height: 242,
+        alt: "CBF Dwarka logo",
       },
     ],
   },
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "CBF Dwarka | Gospel-Centered Church in Dwarka, New Delhi",
     description: siteConfig.description,
-    images: ["/assets/hero.png"],
+    images: ["/assets/logo-resource.png"],
   },
   robots: {
     index: true,
