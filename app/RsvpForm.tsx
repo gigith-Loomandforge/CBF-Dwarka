@@ -40,11 +40,47 @@ export function RsvpForm({ eventId, eventType, headingId, title, intro }: RsvpFo
   const [members, setMembers] = useState<AdditionalMember[]>([]);
   const [website, setWebsite] = useState("");
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [registeredAttendees, setRegisteredAttendees] = useState<number | null>(null);
   const [submitState, setSubmitState] = useState<SubmitState>({ status: "idle", message: "" });
 
   useEffect(() => {
     formStartedAt.current = Date.now();
   }, []);
+
+  useEffect(() => {
+    if (!eventId) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const searchParams = new URLSearchParams({ eventId, eventType });
+
+    const loadRegistrationTotal = async () => {
+      try {
+        const response = await fetch(`/api/rsvp/count?${searchParams.toString()}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        const data = (await response.json()) as { attendeeTotal?: number };
+
+        if (
+          response.ok &&
+          Number.isInteger(data.attendeeTotal) &&
+          Number(data.attendeeTotal) >= 0
+        ) {
+          setRegisteredAttendees(Number(data.attendeeTotal));
+        }
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          setRegisteredAttendees(null);
+        }
+      }
+    };
+
+    void loadRegistrationTotal();
+
+    return () => controller.abort();
+  }, [eventId, eventType]);
 
   const partySize = useMemo(() => 1 + members.filter((member) => member.name.trim() || member.age.trim()).length, [members]);
 
@@ -96,7 +132,11 @@ export function RsvpForm({ eventId, eventType, headingId, title, intro }: RsvpFo
         }),
       });
 
-      const data = (await response.json()) as { message?: string; partySize?: number };
+      const data = (await response.json()) as {
+        message?: string;
+        partySize?: number;
+        attendeeTotal?: number;
+      };
 
       if (!response.ok) {
         setSubmitState({ status: "error", message: data.message || "Unable to submit the RSVP right now." });
@@ -104,6 +144,11 @@ export function RsvpForm({ eventId, eventType, headingId, title, intro }: RsvpFo
       }
 
       const confirmedCount = data.partySize || partySize;
+
+      if (Number.isInteger(data.attendeeTotal) && Number(data.attendeeTotal) >= 0) {
+        setRegisteredAttendees(Number(data.attendeeTotal));
+      }
+
       setSubmitState({
         status: "success",
         message: `Thank you. Your RSVP for ${confirmedCount} ${confirmedCount === 1 ? "attendee" : "attendees"} has been received.`,
@@ -225,6 +270,15 @@ export function RsvpForm({ eventId, eventType, headingId, title, intro }: RsvpFo
           I have read the <Link href="/privacy">Privacy Policy</Link> and <Link href="/terms">Terms &amp; Conditions</Link>. I consent to CBF Dwarka using the names and ages entered only to manage attendance for this event. I confirm that I am an adult and am authorized to provide details for every additional attendee.
         </span>
       </label>
+
+      {registeredAttendees !== null ? (
+        <p className="offsite-registration-total" aria-live="polite">
+          <span>Registered so far</span>
+          <strong>
+            {registeredAttendees} {registeredAttendees === 1 ? "attendee" : "attendees"}
+          </strong>
+        </p>
+      ) : null}
 
       <div className="offsite-form-footer">
         <p>{partySize} {partySize === 1 ? "attendee" : "attendees"} in this RSVP</p>

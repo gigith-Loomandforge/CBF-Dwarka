@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  getRsvpAttendeeCount,
   isGoogleSheetsConfigured,
   sendRsvpToGoogleSheets,
   type GoogleSheetsRsvpPayload,
@@ -74,5 +75,58 @@ test("fails when Apps Script rejects a submission", async () => {
         fetchImpl,
       }),
     /rejected/,
+  );
+});
+
+test("requests the attendee total without exposing the secret in the URL", async () => {
+  let receivedUrl = "";
+  let receivedBody = "";
+
+  const fetchImpl: typeof fetch = async (input, init) => {
+    receivedUrl = String(input);
+    receivedBody = String(init?.body || "");
+    return Response.json({ ok: true, attendeeCount: 24 });
+  };
+
+  const attendeeCount = await getRsvpAttendeeCount(
+    {
+      eventId: "offsite-2026",
+      eventType: "offsite",
+      eventYear: 2026,
+    },
+    {
+      url: "https://script.google.com/macros/s/deployment-id/exec",
+      secret: "server-only-secret",
+      fetchImpl,
+    },
+  );
+
+  const body = JSON.parse(receivedBody);
+  assert.equal(attendeeCount, 24);
+  assert.equal(receivedUrl.includes("server-only-secret"), false);
+  assert.equal(body.action, "count");
+  assert.equal(body.secret, "server-only-secret");
+  assert.equal(body.eventId, "offsite-2026");
+});
+
+test("rejects an invalid attendee total", async () => {
+  const fetchImpl: typeof fetch = async () =>
+    Response.json({ ok: true, attendeeCount: "24" });
+
+  await assert.rejects(
+    () =>
+      getRsvpAttendeeCount(
+        {
+          eventId: "offsite-2026",
+          eventType: "offsite",
+          eventYear: 2026,
+        },
+        {
+          url: "https://script.google.com/macros/s/deployment-id/exec",
+          secret: "secret",
+          fetchImpl,
+        },
+      ),
+    /invalid attendee count/,
   );
 });

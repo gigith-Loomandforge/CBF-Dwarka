@@ -42,7 +42,10 @@ const isRsvpEventType = (value: unknown): value is RsvpEventType =>
   typeof value === "string" &&
   Object.prototype.hasOwnProperty.call(rsvpEventConfigs, value);
 
-const jsonResponse = (body: { message: string; partySize?: number }, status = 200) =>
+const jsonResponse = (
+  body: { message: string; partySize?: number; attendeeTotal?: number },
+  status = 200,
+) =>
   NextResponse.json(body, {
     status,
     headers: {
@@ -253,7 +256,7 @@ export async function POST(request: Request) {
   const eventYear = event.eventYear ?? new Date(eventDate).getFullYear();
 
   try {
-    await sendRsvpToGoogleSheets({
+    const result = await sendRsvpToGoogleSheets({
       submissionId,
       submittedAt,
       eventId,
@@ -276,6 +279,15 @@ export async function POST(request: Request) {
       privacyAccepted: true,
       source: "website",
     });
+
+    return jsonResponse({
+      message: "RSVP received.",
+      partySize,
+      attendeeTotal:
+        Number.isInteger(result.attendeeCount) && Number(result.attendeeCount) >= 0
+          ? Number(result.attendeeCount)
+          : undefined,
+    });
   } catch (error) {
     console.error(
       "Google Sheets RSVP write failed.",
@@ -284,8 +296,4 @@ export async function POST(request: Request) {
     return jsonResponse({ message: "We could not save your RSVP right now. Please try again." }, 503);
   }
 
-  return jsonResponse({
-    message: "RSVP received.",
-    partySize,
-  });
 }

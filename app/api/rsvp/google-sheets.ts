@@ -19,6 +19,12 @@ export type GoogleSheetsRsvpPayload = {
   source: string;
 };
 
+export type GoogleSheetsCountPayload = {
+  eventId: string;
+  eventType: RsvpEventType;
+  eventYear: number;
+};
+
 type GoogleSheetsConfig = {
   url?: string;
   secret?: string;
@@ -49,6 +55,32 @@ export const sendRsvpToGoogleSheets = async (
   payload: GoogleSheetsRsvpPayload,
   config: GoogleSheetsConfig = {},
 ) => {
+  return requestGoogleSheets(payload, config);
+};
+
+export const getRsvpAttendeeCount = async (
+  payload: GoogleSheetsCountPayload,
+  config: GoogleSheetsConfig = {},
+) => {
+  const result = await requestGoogleSheets(
+    {
+      action: "count",
+      ...payload,
+    },
+    config,
+  );
+
+  if (!Number.isInteger(result.attendeeCount) || Number(result.attendeeCount) < 0) {
+    throw new Error("Google Sheets RSVP returned an invalid attendee count.");
+  }
+
+  return Number(result.attendeeCount);
+};
+
+const requestGoogleSheets = async (
+  payload: GoogleSheetsRsvpPayload | (GoogleSheetsCountPayload & { action: "count" }),
+  config: GoogleSheetsConfig,
+) => {
   const url = config.url ?? process.env.GOOGLE_APPS_SCRIPT_RSVP_URL;
   const secret = config.secret ?? process.env.GOOGLE_APPS_SCRIPT_RSVP_SECRET;
   const fetchImpl = config.fetchImpl ?? fetch;
@@ -75,10 +107,10 @@ export const sendRsvpToGoogleSheets = async (
     throw new Error(`Google Sheets RSVP request failed with status ${response.status}.`);
   }
 
-  let result: { ok?: boolean };
+  let result: { ok?: boolean; attendeeCount?: number };
 
   try {
-    result = (await response.json()) as { ok?: boolean };
+    result = (await response.json()) as { ok?: boolean; attendeeCount?: number };
   } catch {
     throw new Error("Google Sheets RSVP returned an invalid response.");
   }
@@ -86,4 +118,6 @@ export const sendRsvpToGoogleSheets = async (
   if (result.ok !== true) {
     throw new Error("Google Sheets RSVP rejected the submission.");
   }
+
+  return result;
 };

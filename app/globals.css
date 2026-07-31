@@ -3351,6 +3351,33 @@ p {
   text-underline-offset: 3px;
 }
 
+.offsite-registration-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 28px 0 0;
+  padding: 16px 18px;
+  border-left: 3px solid var(--gold);
+  background: #fbfaf7;
+}
+
+.offsite-registration-total span {
+  color: #6b645e;
+  font-family: Montserrat, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.offsite-registration-total strong {
+  color: var(--deep);
+  font-family: Instrument Serif, Playfair Display, Georgia, serif;
+  font-size: 26px;
+  font-weight: 400;
+}
+
 .offsite-form-footer {
   display: flex;
   align-items: center;
@@ -3772,6 +3799,7 @@ p {
 
   .offsite-members-header,
   .offsite-member-title,
+  .offsite-registration-total,
   .offsite-form-footer,
   .legal-actions {
     align-items: stretch;

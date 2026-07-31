@@ -60,6 +60,8 @@ The Apps Script creates one spreadsheet per service and year on the first submis
 
 Each attendee is stored on a separate row. Repeated webhook deliveries with the same submission ID are ignored. The original Offsite year-only spreadsheet property is reused automatically so existing Offsite records are not split into a second sheet.
 
+The website retrieves only the aggregate attendee count for the current event and year. Names, ages, spreadsheet IDs, and other RSVP details remain server-side. After updating `Code.gs`, deploy a new Apps Script web-app version before deploying the website so the public total can load.
+
 RSVP names and ages must not be copied into Sanity. Review or export attendance from the yearly Google Sheet in the CBF Google Drive.
 
 ## 5. Start a new annual service

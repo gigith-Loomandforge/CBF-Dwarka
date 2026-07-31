@@ -41,6 +41,25 @@ function doPost(event) {
       return jsonResponse_({ ok: false, error: "Unauthorized" });
     }
 
+    if (String(payload.action || "") === "count") {
+      const countRequest = validateCountPayload_(payload);
+      const spreadsheet = getExistingSpreadsheet_(
+        countRequest.eventType,
+        countRequest.eventYear,
+      );
+
+      if (!spreadsheet) {
+        return jsonResponse_({ ok: true, attendeeCount: 0 });
+      }
+
+      const sheet = spreadsheet.getSheetByName(SHEET_NAME);
+      const attendeeCount = sheet
+        ? countAttendees_(sheet, countRequest.eventId)
+        : 0;
+
+      return jsonResponse_({ ok: true, attendeeCount: attendeeCount });
+    }
+
     const normalized = validatePayload_(payload);
     const lock = LockService.getScriptLock();
 
@@ -60,6 +79,7 @@ function doPost(event) {
           ok: true,
           duplicate: true,
           spreadsheetId: spreadsheet.getId(),
+          attendeeCount: countAttendees_(sheet, normalized.eventId),
         });
       }
 
@@ -92,6 +112,7 @@ function doPost(event) {
         duplicate: false,
         spreadsheetId: spreadsheet.getId(),
         rowsAdded: rows.length,
+        attendeeCount: countAttendees_(sheet, normalized.eventId),
       });
     } finally {
       lock.releaseLock();
@@ -102,7 +123,7 @@ function doPost(event) {
   }
 }
 
-function getOrCreateSpreadsheet_(eventType, eventYear) {
+function getExistingSpreadsheet_(eventType, eventYear) {
   const properties = PropertiesService.getScriptProperties();
   const propertyName =
     SPREADSHEET_PROPERTY_PREFIX + eventType.toUpperCase() + "_" + eventYear;
@@ -132,6 +153,19 @@ function getOrCreateSpreadsheet_(eventType, eventYear) {
     }
   }
 
+  return null;
+}
+
+function getOrCreateSpreadsheet_(eventType, eventYear) {
+  const existingSpreadsheet = getExistingSpreadsheet_(eventType, eventYear);
+
+  if (existingSpreadsheet) {
+    return existingSpreadsheet;
+  }
+
+  const properties = PropertiesService.getScriptProperties();
+  const propertyName =
+    SPREADSHEET_PROPERTY_PREFIX + eventType.toUpperCase() + "_" + eventYear;
   const spreadsheet = SpreadsheetApp.create(
     EVENT_NAMES[eventType] + " RSVP " + eventYear,
   );
@@ -151,6 +185,21 @@ function getOrCreateSpreadsheet_(eventType, eventYear) {
   return spreadsheet;
 }
 
+function countAttendees_(sheet, eventId) {
+  const attendeeRows = sheet.getLastRow() - 1;
+
+  if (attendeeRows < 1) {
+    return 0;
+  }
+
+  return sheet
+    .getRange(2, 4, attendeeRows, 1)
+    .getDisplayValues()
+    .filter(function (row) {
+      return String(row[0]) === eventId;
+    }).length;
+}
+
 function hasSubmission_(sheet, submissionId) {
   if (sheet.getLastRow() < 2) {
     return false;
@@ -163,6 +212,34 @@ function hasSubmission_(sheet, submissionId) {
       .matchEntireCell(true)
       .findNext(),
   );
+}
+
+function validateCountPayload_(payload) {
+  const eventYear = Number(payload.eventYear);
+  const eventId = String(payload.eventId || "").trim();
+  const eventType = String(payload.eventType || "").trim().toLowerCase();
+
+  if (!eventId || eventId.length > 120) {
+    throw new Error("Invalid event ID");
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(EVENT_NAMES, eventType)) {
+    throw new Error("Invalid event type");
+  }
+
+  if (
+    !Number.isInteger(eventYear) ||
+    eventYear < 2020 ||
+    eventYear > 2100
+  ) {
+    throw new Error("Invalid event year");
+  }
+
+  return {
+    eventId: eventId,
+    eventType: eventType,
+    eventYear: eventYear,
+  };
 }
 
 function validatePayload_(payload) {
